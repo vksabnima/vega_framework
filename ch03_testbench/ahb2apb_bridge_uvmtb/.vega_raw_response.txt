@@ -1,0 +1,1769 @@
+
+
+I'll generate all 21 files for the AHB-to-APB bridge UVM testbench scaffolding. I've carefully read all four inputs and verified against the checklist.
+
+FILE: ahb_mst_if.sv
+// =============================================================================
+// File        : ahb_mst_if.sv
+// Description : AHB Master Interface
+//
+// This interface bundles all AHB signals that the bridge's slave port connects
+// to.  Signal names, directions (from the master/TB perspective), and widths
+// are taken verbatim from the IP-XACT component description.
+//
+// Derivation:
+//   - IP-XACT: signal names HADDR[31:0], HTRANS[1:0], HWRITE, HSIZE[2:0],
+//              HBURST[2:0], HWDATA[31:0], HSEL, HREADY_IN (all driven by TB
+//              toward DUT input pins), and HRDATA[31:0], HREADY_OUT, HRESP
+//              (DUT outputs sampled by TB).
+//   - Manifest: HCLK period=10ns, HRESETn active-low asserted 100ns.
+//   - Spec/Intent: single-clock domain, AHB-Lite pipelined address/data.
+//
+// Confidence: HIGH — standard AHB-Lite signal set.
+//
+// EDIT_RECOMMENDED: If your DUT uses a multiplexed HREADY (no HREADY_IN vs
+//   HREADY_OUT split), adjust accordingly.  The IP-XACT shows both signals.
+// =============================================================================
+
+interface ahb_mst_if (input logic HCLK, input logic HRESETn);
+
+  // ----- AHB signals driven by the master (TB drives toward DUT inputs) -----
+  logic [31:0] HADDR;      // AHB address bus
+  logic [ 1:0] HTRANS;     // Transfer type: IDLE/BUSY/NONSEQ/SEQ
+  logic        HWRITE;     // 1=write, 0=read
+  logic [ 2:0] HSIZE;      // Transfer size
+  logic [ 2:0] HBURST;     // Burst type
+  logic [31:0] HWDATA;     // Write data (data phase)
+  logic        HSEL;       // Slave select
+  logic        HREADY_IN;  // Ready from mux (driven by TB as bus ready)
+
+  // ----- AHB signals driven by DUT (sampled by TB) -----
+  logic [31:0] HRDATA;     // Read data
+  logic        HREADY_OUT; // Slave ready output
+  logic        HRESP;      // 0=OKAY, 1=ERROR
+
+  // =========================================================================
+  // Clocking blocks — define when the driver drives and monitor samples.
+  //
+  // Driver:  drives inputs one tick after the rising edge (output skew)
+  //          so that DUT sees stable values at the next rising edge.
+  // Monitor: samples outputs at the rising edge (no skew) to capture
+  //          DUT-stable values.
+  //
+  // EDIT_OPTIONAL: Adjust skews if setup/hold violations occur in simulation.
+  // =========================================================================
+  clocking drv_cb @(posedge HCLK);
+    default input #1step output #1;
+    output HADDR, HTRANS, HWRITE, HSIZE, HBURST, HWDATA, HSEL, HREADY_IN;
+    input  HRDATA, HREADY_OUT, HRESP;
+  endclocking
+
+  clocking mon_cb @(posedge HCLK);
+    default input #1step output #1step;
+    input HADDR, HTRANS, HWRITE, HSIZE, HBURST, HWDATA, HSEL, HREADY_IN;
+    input HRDATA, HREADY_OUT, HRESP;
+  endclocking
+
+endinterface
+END_FILE
+
+FILE: apb_slv_if.sv
+// =============================================================================
+// File        : apb_slv_if.sv
+// Description : APB Slave Interface
+//
+// This interface bundles all APB signals on the bridge's master port.  From
+// the TB's perspective the APB agent is a *slave* (reactive) — it observes
+// PADDR/PSEL/PENABLE/PWRITE/PWDATA driven by the DUT and responds with
+// PRDATA/PREADY/PSLVERR.
+//
+// Derivation:
+//   - IP-XACT: PADDR[31:0], PSEL, PENABLE, PWRITE, PWDATA[31:0] are DUT
+//              outputs; PRDATA[31:0], PREADY, PSLVERR are DUT inputs.
+//   - Manifest: apb_slv interface, role=passive (reactive slave).
+//   - Intent: simple memory slave, PREADY after one cycle, no errors.
+//
+// Confidence: HIGH — standard APB2 signal set.
+// =============================================================================
+
+interface apb_slv_if (input logic HCLK, input logic HRESETn);
+
+  // ----- APB signals driven by DUT (bridge master outputs) -----
+  logic [31:0] PADDR;
+  logic        PSEL;
+  logic        PENABLE;
+  logic        PWRITE;
+  logic [31:0] PWDATA;
+
+  // ----- APB signals driven by TB slave (toward DUT inputs) -----
+  logic [31:0] PRDATA;
+  logic        PREADY;
+  logic        PSLVERR;
+
+  // =========================================================================
+  // Clocking blocks
+  //
+  // Driver (slave): samples DUT outputs (PADDR etc.), drives PRDATA/PREADY/
+  //   PSLVERR back to DUT.
+  // Monitor: samples everything at the rising edge.
+  //
+  // EDIT_OPTIONAL: Adjust skews for waveform clarity.
+  // =========================================================================
+  clocking drv_cb @(posedge HCLK);
+    default input #1step output #1;
+    input  PADDR, PSEL, PENABLE, PWRITE, PWDATA;
+    output PRDATA, PREADY, PSLVERR;
+  endclocking
+
+  clocking mon_cb @(posedge HCLK);
+    default input #1step output #1step;
+    input PADDR, PSEL, PENABLE, PWRITE, PWDATA;
+    input PRDATA, PREADY, PSLVERR;
+  endclocking
+
+endinterface
+END_FILE
+
+FILE: config/ahb2apb_bridge_dut_config.sv
+// =============================================================================
+// File        : ahb2apb_bridge_dut_config.sv
+// Description : DUT-level configuration object
+//
+// Centralises all configuration knobs for the testbench:
+//   - Number of transactions (from manifest stimulus.num_txns = 5)
+//   - Address range (from IP-XACT APB_ADDR_START/END)
+//   - Agent activity modes
+//
+// Derivation:
+//   - Manifest: stimulus.num_txns=5, drain_time_ns=200
+//   - IP-XACT:  APB_ADDR_START=0, APB_ADDR_END=65535 (0xFFFF),
+//               REG_BASE=3840 (0x0F00)
+//
+// Confidence: HIGH — straightforward configuration container.
+// =============================================================================
+
+class ahb2apb_bridge_dut_config extends uvm_object;
+  `uvm_object_utils(ahb2apb_bridge_dut_config)
+
+  // ----- Transaction count -----
+  // From manifest: stimulus.num_txns = 5
+  int num_txns = 5;
+
+  // ----- Address ranges (from IP-XACT parameters) -----
+  // APB window: 0x0000_0000 to 0x0000_FFFF
+  // Register block: 0x0000_0F00 to 0x0000_0F0F (16 bytes)
+  // For bringup/sanity: avoid register range to test pure bridge path
+  bit [31:0] apb_addr_start = 32'h0000_0000;
+  bit [31:0] apb_addr_end   = 32'h0000_FFFF;
+  bit [31:0] reg_base       = 32'h0000_0F00;
+  bit [31:0] reg_end        = 32'h0000_0F0F;
+
+  // ----- Agent modes -----
+  // ahb_mst is ACTIVE (drives AHB), apb_slv is ACTIVE (reactive slave)
+  uvm_active_passive_enum ahb_mst_is_active = UVM_ACTIVE;
+  uvm_active_passive_enum apb_slv_is_active = UVM_ACTIVE;
+
+  // ----- Drain time in ns -----
+  int drain_time_ns = 200;
+
+  // ----- Scoreboard enable (disabled for bringup test) -----
+  bit scoreboard_enable = 1;
+
+  function new(string name = "ahb2apb_bridge_dut_config");
+    super.new(name);
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/ahb_mst_agent/ahb_mst_seq_item.sv
+// =============================================================================
+// File        : ahb_mst_seq_item.sv
+// Description : AHB Master Sequence Item (transaction descriptor)
+//
+// Encapsulates one AHB transfer:
+//   - Address phase: HADDR, HTRANS, HWRITE, HSIZE, HBURST, HSEL
+//   - Data phase:    HWDATA (write), HRDATA (read — captured by monitor)
+//   - Response:      HRESP, HREADY_OUT
+//
+// Derivation:
+//   - IP-XACT: signal names and widths
+//   - Intent:  single transfers only (HTRANS=NONSEQ, HBURST=SINGLE)
+//   - Tool:    No .randomize() — use $urandom / $urandom_range + post_randomize()
+//
+// Confidence: HIGH — standard AHB transaction fields.
+// =============================================================================
+
+class ahb_mst_seq_item extends uvm_sequence_item;
+  `uvm_object_utils(ahb_mst_seq_item)
+
+  // ----- Address-phase fields -----
+  bit [31:0] HADDR;
+  bit [ 1:0] HTRANS;  // 2'b10 = NONSEQ for single transfers
+  bit        HWRITE;   // 1=write, 0=read
+  bit [ 2:0] HSIZE;    // 3'b010 = 32-bit word
+  bit [ 2:0] HBURST;   // 3'b000 = SINGLE
+  bit        HSEL;     // Always 1 when targeting this bridge
+
+  // ----- Data-phase fields -----
+  bit [31:0] HWDATA;   // Write data (driven by driver in data phase)
+  bit [31:0] HRDATA;   // Read data (captured by monitor)
+
+  // ----- Response fields -----
+  bit        HRESP;    // 0=OKAY, 1=ERROR
+  bit        HREADY_OUT; // Captured at completion
+
+  function new(string name = "ahb_mst_seq_item");
+    super.new(name);
+  endfunction
+
+  // =========================================================================
+  // post_randomize — called after manual field assignment to apply defaults
+  // and constraints that would normally be in randomize() constraints.
+  //
+  // Per tool constraint [TC1]: no .randomize() in Questa FSE.
+  // =========================================================================
+  function void post_randomize();
+    // For bringup: force single transfers
+    HTRANS = 2'b10;   // NONSEQ
+    HBURST = 3'b000;  // SINGLE
+    HSIZE  = 3'b010;  // 32-bit word
+    HSEL   = 1'b1;    // Always selected
+  endfunction
+
+  // =========================================================================
+  // Utility: convert to string for UVM messaging
+  // =========================================================================
+  virtual function string convert2string();
+    return $sformatf("HADDR=0x%08h %s HWDATA=0x%08h HRDATA=0x%08h HRESP=%0b",
+                     HADDR,
+                     HWRITE ? "WR" : "RD",
+                     HWDATA,
+                     HRDATA,
+                     HRESP);
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/ahb_mst_agent/ahb_mst_driver.sv
+// =============================================================================
+// File        : ahb_mst_driver.sv
+// Description : AHB Master Driver
+//
+// Drives AHB transactions onto the ahb_mst_if interface toward the DUT's
+// AHB slave port.  Implements AHB-Lite single transfer protocol:
+//
+//   1. Wait for HREADY_OUT=1 (bus idle / previous transfer done)
+//   2. ADDRESS PHASE: Drive HADDR, HTRANS=NONSEQ, HWRITE, HSIZE, HBURST,
+//      HSEL=1, HREADY_IN=1
+//   3. Wait one clock for data phase
+//   4. DATA PHASE: Drive HWDATA (for writes), wait for HREADY_OUT=1
+//   5. Capture HRDATA (for reads), HRESP
+//   6. Return to idle (HTRANS=IDLE)
+//
+// Derivation:
+//   - IP-XACT: all signal names from AHB slave interface ports
+//   - Intent: simple single transfers, no bursts
+//   - Protocol: AHB-Lite pipelined address/data phases
+//
+// Confidence: MEDIUM — AHB pipelining is well-known but the exact bridge
+//   handshake (HREADY_IN vs HREADY_OUT) must match DUT behavior.
+//
+// EDIT_RECOMMENDED: The HREADY_IN driving strategy assumes the TB is the
+//   only master.  If a multi-master scenario is used, HREADY_IN must be
+//   driven by an interconnect model.
+// =============================================================================
+
+class ahb_mst_driver extends uvm_driver #(ahb_mst_seq_item);
+  `uvm_component_utils(ahb_mst_driver)
+
+  // Virtual interface handle — no modport suffix per [U1]
+  virtual ahb_mst_if vif;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  // =========================================================================
+  // build_phase: retrieve virtual interface from config_db
+  // =========================================================================
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    if (!uvm_config_db#(virtual ahb_mst_if)::get(this, "", "vif", vif))
+      `uvm_fatal("NOVIF", "ahb_mst_driver: no virtual interface 'vif' in config_db")
+  endfunction
+
+  // =========================================================================
+  // run_phase: main driving loop
+  //
+  // Protocol timing:
+  //   Cycle N  : Address phase — drive HADDR, HTRANS, HWRITE, etc.
+  //   Cycle N+1: Data phase    — drive HWDATA, wait for HREADY_OUT=1
+  //   When HREADY_OUT=1 in data phase, transfer is complete.
+  //
+  // Between transactions: drive HTRANS=IDLE, HSEL=0 for one idle cycle.
+  // This matches the intent requirement of no back-to-back transfers.
+  // =========================================================================
+  virtual task run_phase(uvm_phase phase);
+    ahb_mst_seq_item req;
+
+    // Initialize all outputs to idle/safe values at time 0
+    drive_idle();
+
+    forever begin
+      // Get next transaction from sequencer
+      seq_item_port.get_next_item(req);
+
+      `uvm_info("AHB_DRV", $sformatf("Driving: %s", req.convert2string()), UVM_MEDIUM)
+
+      // ---- Wait for bus to be ready (HREADY_OUT=1) before address phase ----
+      // The bridge drives HREADY_OUT; we wait until it is high.
+      while (vif.drv_cb.HREADY_OUT !== 1'b1) begin
+        @(vif.drv_cb);
+      end
+
+      // ---- ADDRESS PHASE ----
+      // Drive address and control signals.  HREADY_IN=1 tells bridge
+      // that the previous transfer on the bus (if any) is complete.
+      vif.drv_cb.HADDR     <= req.HADDR;
+      vif.drv_cb.HTRANS    <= req.HTRANS;  // NONSEQ (2'b10) for single
+      vif.drv_cb.HWRITE    <= req.HWRITE;
+      vif.drv_cb.HSIZE     <= req.HSIZE;
+      vif.drv_cb.HBURST    <= req.HBURST;
+      vif.drv_cb.HSEL      <= req.HSEL;
+      vif.drv_cb.HREADY_IN <= 1'b1;
+
+      @(vif.drv_cb); // Advance to data phase
+
+      // ---- DATA PHASE ----
+      // For writes: drive HWDATA now (one cycle after address phase).
+      // For reads: HWDATA is don't-care but we drive 0 for cleanliness.
+      // Simultaneously move HTRANS to IDLE to indicate no pipelined next transfer.
+      vif.drv_cb.HWDATA    <= req.HWRITE ? req.HWDATA : 32'h0;
+      vif.drv_cb.HTRANS    <= 2'b00;  // IDLE — no back-to-back
+      vif.drv_cb.HSEL      <= 1'b0;   // Deselect for idle
+
+      // Wait for bridge to complete: HREADY_OUT=1
+      // The bridge deasserts HREADY_OUT during APB setup/access phases.
+      while (vif.drv_cb.HREADY_OUT !== 1'b1) begin
+        @(vif.drv_cb);
+      end
+
+      // ---- Capture response ----
+      // At this point HREADY_OUT=1, so HRDATA and HRESP are valid.
+      req.HRDATA     = vif.drv_cb.HRDATA;
+      req.HRESP      = vif.drv_cb.HRESP;
+      req.HREADY_OUT = vif.drv_cb.HREADY_OUT;
+
+      `uvm_info("AHB_DRV", $sformatf("Completed: %s", req.convert2string()), UVM_MEDIUM)
+
+      // Return item to sequencer (marks transaction as done)
+      seq_item_port.item_done();
+
+      // ---- Idle gap ----
+      // Drive one idle cycle between transactions per intent (no back-to-back).
+      drive_idle();
+      @(vif.drv_cb);
+    end
+  endtask
+
+  // =========================================================================
+  // drive_idle — put AHB bus in IDLE state
+  //
+  // HTRANS=IDLE, HSEL=0, HREADY_IN=1 (bus is free).
+  // All other signals driven to 0 for cleanliness.
+  // =========================================================================
+  virtual task drive_idle();
+    vif.drv_cb.HADDR     <= 32'h0;
+    vif.drv_cb.HTRANS    <= 2'b00;  // IDLE
+    vif.drv_cb.HWRITE    <= 1'b0;
+    vif.drv_cb.HSIZE     <= 3'b000;
+    vif.drv_cb.HBURST    <= 3'b000;
+    vif.drv_cb.HWDATA    <= 32'h0;
+    vif.drv_cb.HSEL      <= 1'b0;
+    vif.drv_cb.HREADY_IN <= 1'b1;   // Bus is always ready in idle
+  endtask
+
+endclass
+END_FILE
+
+FILE: env/ahb_mst_agent/ahb_mst_monitor.sv
+// =============================================================================
+// File        : ahb_mst_monitor.sv
+// Description : AHB Master Monitor
+//
+// Passively observes AHB transactions on the ahb_mst_if interface.
+// Captures complete transfers (address phase + data phase) and writes
+// them to an analysis port for the scoreboard.
+//
+// Capture point:
+//   1. Detect address phase: HSEL=1 && HTRANS=NONSEQ/SEQ && HREADY_IN=1
+//      (bridge latches address when all three are true per IP-XACT).
+//   2. Latch HADDR, HWRITE, HSIZE, HBURST from address phase.
+//   3. Wait for data phase completion: HREADY_OUT=1.
+//   4. Capture HWDATA (writes) or HRDATA (reads), HRESP.
+//   5. Broadcast completed transaction.
+//
+// Derivation:
+//   - IP-XACT: signal names, capture conditions from port descriptions
+//   - Intent:  "Monitor every AHB transaction as it enters the bridge"
+//   - Protocol: AHB pipelined — address valid when HREADY=1
+//
+// Confidence: HIGH — standard AHB monitoring technique.
+// =============================================================================
+
+class ahb_mst_monitor extends uvm_monitor;
+  `uvm_component_utils(ahb_mst_monitor)
+
+  // Analysis port — scoreboard subscribes to this
+  uvm_analysis_port #(ahb_mst_seq_item) ap;
+
+  // Virtual interface — no modport per [U1]
+  virtual ahb_mst_if vif;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    ap = new("ap", this);
+    if (!uvm_config_db#(virtual ahb_mst_if)::get(this, "", "vif", vif))
+      `uvm_fatal("NOVIF", "ahb_mst_monitor: no virtual interface 'vif' in config_db")
+  endfunction
+
+  // =========================================================================
+  // run_phase: continuously observe AHB bus
+  //
+  // Uses monitor clocking block (mon_cb) to sample signals cleanly.
+  // The monitor is purely passive — never drives any signal.
+  // =========================================================================
+  virtual task run_phase(uvm_phase phase);
+    ahb_mst_seq_item txn;
+
+    forever begin
+      @(vif.mon_cb);
+
+      // ----- Detect address phase -----
+      // Per IP-XACT: bridge latches on rising HCLK when
+      // HREADY_IN=1 && HSEL=1 && HTRANS=NONSEQ or SEQ
+      if (vif.mon_cb.HSEL === 1'b1 &&
+          vif.mon_cb.HREADY_IN === 1'b1 &&
+          (vif.mon_cb.HTRANS == 2'b10 || vif.mon_cb.HTRANS == 2'b11)) begin
+
+        txn = ahb_mst_seq_item::type_id::create("ahb_txn");
+
+        // Latch address-phase signals
+        txn.HADDR  = vif.mon_cb.HADDR;
+        txn.HTRANS = vif.mon_cb.HTRANS;
+        txn.HWRITE = vif.mon_cb.HWRITE;
+        txn.HSIZE  = vif.mon_cb.HSIZE;
+        txn.HBURST = vif.mon_cb.HBURST;
+        txn.HSEL   = vif.mon_cb.HSEL;
+
+        // ----- Wait for data phase completion -----
+        // Move to next clock edge (data phase begins)
+        @(vif.mon_cb);
+
+        // Wait until HREADY_OUT=1 (transfer complete)
+        while (vif.mon_cb.HREADY_OUT !== 1'b1) begin
+          @(vif.mon_cb);
+        end
+
+        // Capture data-phase signals
+        txn.HWDATA     = vif.mon_cb.HWDATA;    // Valid for writes
+        txn.HRDATA     = vif.mon_cb.HRDATA;    // Valid for reads
+        txn.HRESP      = vif.mon_cb.HRESP;
+        txn.HREADY_OUT = vif.mon_cb.HREADY_OUT;
+
+        // Per [U4]: call post_randomize() after capturing all signals
+        txn.post_randomize();
+
+        `uvm_info("AHB_MON", $sformatf("Observed: %s", txn.convert2string()), UVM_MEDIUM)
+
+        // Broadcast to scoreboard
+        ap.write(txn);
+      end
+    end
+  endtask
+
+endclass
+END_FILE
+
+FILE: env/ahb_mst_agent/ahb_mst_sequencer.sv
+// =============================================================================
+// File        : ahb_mst_sequencer.sv
+// Description : AHB Master Sequencer
+//
+// Standard UVM sequencer — no custom logic needed for bringup/sanity tests.
+// Passes ahb_mst_seq_item between sequence and driver.
+//
+// Confidence: HIGH — boilerplate UVM sequencer.
+// =============================================================================
+
+class ahb_mst_sequencer extends uvm_sequencer #(ahb_mst_seq_item);
+  `uvm_component_utils(ahb_mst_sequencer)
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/ahb_mst_agent/ahb_mst_agent.sv
+// =============================================================================
+// File        : ahb_mst_agent.sv
+// Description : AHB Master Agent
+//
+// Contains driver, monitor, and sequencer for the AHB master interface.
+// Active by default (drives transactions).  Can be set passive via config.
+//
+// Derivation:
+//   - Manifest: ahb_mst interface, role=active
+//   - Config:   ahb_mst_is_active controls instantiation
+//
+// Confidence: HIGH — standard UVM agent pattern.
+// =============================================================================
+
+class ahb_mst_agent extends uvm_agent;
+  `uvm_component_utils(ahb_mst_agent)
+
+  ahb_mst_driver    drv;
+  ahb_mst_monitor   mon;
+  ahb_mst_sequencer sqr;
+
+  ahb2apb_bridge_dut_config cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+
+    // Retrieve configuration
+    if (!uvm_config_db#(ahb2apb_bridge_dut_config)::get(this, "", "cfg", cfg))
+      `uvm_fatal("NOCFG", "ahb_mst_agent: no 'cfg' in config_db")
+
+    // Monitor is always instantiated (passive observation)
+    mon = ahb_mst_monitor::type_id::create("mon", this);
+
+    // Driver + sequencer only in active mode
+    if (cfg.ahb_mst_is_active == UVM_ACTIVE) begin
+      drv = ahb_mst_driver::type_id::create("drv", this);
+      sqr = ahb_mst_sequencer::type_id::create("sqr", this);
+    end
+  endfunction
+
+  virtual function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+    // Connect driver to sequencer in active mode
+    if (cfg.ahb_mst_is_active == UVM_ACTIVE) begin
+      drv.seq_item_port.connect(sqr.seq_item_export);
+    end
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/apb_slv_agent/apb_slv_seq_item.sv
+// =============================================================================
+// File        : apb_slv_seq_item.sv
+// Description : APB Slave Sequence Item (transaction descriptor)
+//
+// Represents one APB transfer as seen/driven by the reactive slave agent:
+//   - PADDR, PSEL, PENABLE, PWRITE, PWDATA (from DUT, observed by slave)
+//   - PRDATA, PREADY, PSLVERR (driven by slave back to DUT)
+//
+// Derivation:
+//   - IP-XACT: signal names from APB master interface ports
+//   - Intent:  slave stores writes, returns data on reads, no errors
+//
+// Confidence: HIGH — standard APB2 transaction fields.
+// =============================================================================
+
+class apb_slv_seq_item extends uvm_sequence_item;
+  `uvm_object_utils(apb_slv_seq_item)
+
+  // ----- Signals from DUT (observed by slave) -----
+  bit [31:0] PADDR;
+  bit        PSEL;
+  bit        PENABLE;
+  bit        PWRITE;
+  bit [31:0] PWDATA;
+
+  // ----- Signals driven by slave to DUT -----
+  bit [31:0] PRDATA;
+  bit        PREADY;
+  bit        PSLVERR;
+
+  function new(string name = "apb_slv_seq_item");
+    super.new(name);
+  endfunction
+
+  // =========================================================================
+  // post_randomize — apply defaults for bringup
+  // No errors, PREADY always asserted.
+  // =========================================================================
+  function void post_randomize();
+    PREADY  = 1'b1;
+    PSLVERR = 1'b0;
+  endfunction
+
+  virtual function string convert2string();
+    return $sformatf("PADDR=0x%08h %s PWDATA=0x%08h PRDATA=0x%08h PSLVERR=%0b",
+                     PADDR,
+                     PWRITE ? "WR" : "RD",
+                     PWDATA,
+                     PRDATA,
+                     PSLVERR);
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/apb_slv_agent/apb_slv_driver.sv
+// =============================================================================
+// File        : apb_slv_driver.sv
+// Description : APB Slave Driver (reactive)
+//
+// This driver is *reactive*: it doesn't initiate transfers, it responds to
+// APB transactions initiated by the DUT's bridge master port.
+//
+// Protocol timing (APB2):
+//   SETUP phase:  PSEL=1, PENABLE=0 — slave sees address/direction
+//   ACCESS phase: PSEL=1, PENABLE=1 — slave must drive PREADY, PRDATA, PSLVERR
+//                 Transfer completes when PREADY=1 at rising edge.
+//
+// Behavior (from intent):
+//   - Simple memory model: associative array indexed by address
+//   - Write: store PWDATA at PADDR
+//   - Read:  return stored data (or 0 if address never written)
+//   - PREADY asserted after one cycle (no wait states)
+//   - PSLVERR always 0 (no error injection for bringup)
+//
+// The driver does NOT use sequences for reactive behavior — it directly
+// observes and responds in run_phase.
+//
+// EDIT_RECOMMENDED: If you want sequence-driven reactive responses, convert
+//   this to use seq_item_port.get_next_item() with a reactive sequence.
+//   For bringup simplicity, the memory model is embedded in the driver.
+//
+// Confidence: MEDIUM — reactive APB slave is straightforward but
+//   the exact timing of PREADY relative to PENABLE must match DUT expectations.
+// =============================================================================
+
+class apb_slv_driver extends uvm_driver #(apb_slv_seq_item);
+  `uvm_component_utils(apb_slv_driver)
+
+  virtual apb_slv_if vif;
+
+  // Simple memory model — associative array keyed by word-aligned address
+  bit [31:0] mem [bit[31:0]];
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    if (!uvm_config_db#(virtual apb_slv_if)::get(this, "", "vif", vif))
+      `uvm_fatal("NOVIF", "apb_slv_driver: no virtual interface 'vif' in config_db")
+  endfunction
+
+  // =========================================================================
+  // run_phase: reactive slave — observe and respond
+  //
+  // Waits for PSEL=1 && PENABLE=0 (setup phase), then on next clock
+  // (access phase with PENABLE=1) drives PRDATA/PREADY/PSLVERR.
+  //
+  // Per intent: PREADY after one clock, no wait states, no errors.
+  //
+  // PROTOCOL_GAP: The exact behavior when bridge deasserts PSEL mid-transfer
+  //   is not tested in bringup.  The driver simply returns to idle.
+  // =========================================================================
+  virtual task run_phase(uvm_phase phase);
+    // Initialize outputs to safe defaults
+    vif.drv_cb.PRDATA  <= 32'h0;
+    vif.drv_cb.PREADY  <= 1'b1;  // Default ready (no wait states)
+    vif.drv_cb.PSLVERR <= 1'b0;
+
+    forever begin
+      @(vif.drv_cb);
+
+      // ----- Detect SETUP phase: PSEL=1, PENABLE=0 -----
+      if (vif.drv_cb.PSEL === 1'b1 && vif.drv_cb.PENABLE === 1'b0) begin
+        bit [31:0] addr;
+        bit        wr;
+        bit [31:0] wdata;
+
+        // Capture setup-phase information
+        addr  = vif.drv_cb.PADDR;
+        wr    = vif.drv_cb.PWRITE;
+
+        // ----- ACCESS phase: next clock, PENABLE should go high -----
+        // Drive PREADY=1 (no wait states per intent)
+        // For reads: drive stored data
+        // For writes: data captured in access phase
+        if (!wr) begin
+          // Read: return previously stored value, or 0 if never written
+          if (mem.exists(addr))
+            vif.drv_cb.PRDATA <= mem[addr];
+          else
+            vif.drv_cb.PRDATA <= 32'h0;
+        end
+
+        vif.drv_cb.PREADY  <= 1'b1;
+        vif.drv_cb.PSLVERR <= 1'b0;
+
+        // Wait for ACCESS phase
+        @(vif.drv_cb);
+
+        // Verify PENABLE is now high (sanity check)
+        if (vif.drv_cb.PSEL === 1'b1 && vif.drv_cb.PENABLE === 1'b1) begin
+          if (wr) begin
+            // Write: capture PWDATA and store in memory
+            wdata = vif.drv_cb.PWDATA;
+            mem[addr] = wdata;
+            `uvm_info("APB_SLV_DRV", $sformatf("WRITE mem[0x%08h] = 0x%08h", addr, wdata), UVM_HIGH)
+          end else begin
+            `uvm_info("APB_SLV_DRV", $sformatf("READ  mem[0x%08h] = 0x%08h", addr,
+                      mem.exists(addr) ? mem[addr] : 32'h0), UVM_HIGH)
+          end
+        end else begin
+          `uvm_warning("APB_SLV_DRV", "Expected PENABLE=1 in access phase but not seen")
+        end
+
+        // After transfer complete, deassert PRDATA (not required but clean)
+        // PREADY stays high as default
+      end
+    end
+  endtask
+
+endclass
+END_FILE
+
+FILE: env/apb_slv_agent/apb_slv_monitor.sv
+// =============================================================================
+// File        : apb_slv_monitor.sv
+// Description : APB Slave Monitor
+//
+// Passively observes APB transactions on the apb_slv_if interface.
+// Captures completed transfers and writes them to an analysis port.
+//
+// Capture point (from IP-XACT and APB2 protocol):
+//   - Transfer completes when PSEL=1 && PENABLE=1 && PREADY=1
+//   - At that rising edge: capture PADDR, PWRITE, PWDATA, PRDATA, PSLVERR
+//
+// Derivation:
+//   - IP-XACT: signal names from APB master interface
+//   - Intent: "Monitor every APB transaction as it exits the bridge.
+//             Capture when PREADY is asserted."
+//
+// Confidence: HIGH — standard APB monitor capture logic.
+// =============================================================================
+
+class apb_slv_monitor extends uvm_monitor;
+  `uvm_component_utils(apb_slv_monitor)
+
+  uvm_analysis_port #(apb_slv_seq_item) ap;
+  virtual apb_slv_if vif;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    ap = new("ap", this);
+    if (!uvm_config_db#(virtual apb_slv_if)::get(this, "", "vif", vif))
+      `uvm_fatal("NOVIF", "apb_slv_monitor: no virtual interface 'vif' in config_db")
+  endfunction
+
+  // =========================================================================
+  // run_phase: continuously observe APB bus
+  //
+  // APB transfer completes at rising edge when PSEL && PENABLE && PREADY.
+  // This is the "access phase completion" per APB2 spec.
+  // =========================================================================
+  virtual task run_phase(uvm_phase phase);
+    apb_slv_seq_item txn;
+
+    forever begin
+      @(vif.mon_cb);
+
+      // Detect transfer completion: PSEL=1 && PENABLE=1 && PREADY=1
+      if (vif.mon_cb.PSEL === 1'b1 &&
+          vif.mon_cb.PENABLE === 1'b1 &&
+          vif.mon_cb.PREADY === 1'b1) begin
+
+        txn = apb_slv_seq_item::type_id::create("apb_txn");
+
+        txn.PADDR   = vif.mon_cb.PADDR;
+        txn.PSEL    = vif.mon_cb.PSEL;
+        txn.PENABLE = vif.mon_cb.PENABLE;
+        txn.PWRITE  = vif.mon_cb.PWRITE;
+        txn.PWDATA  = vif.mon_cb.PWDATA;
+        txn.PRDATA  = vif.mon_cb.PRDATA;
+        txn.PREADY  = vif.mon_cb.PREADY;
+        txn.PSLVERR = vif.mon_cb.PSLVERR;
+
+        // Per [U4]: call post_randomize() after capturing all signals
+        txn.post_randomize();
+
+        `uvm_info("APB_MON", $sformatf("Observed: %s", txn.convert2string()), UVM_MEDIUM)
+
+        ap.write(txn);
+      end
+    end
+  endtask
+
+endclass
+END_FILE
+
+FILE: env/apb_slv_agent/apb_slv_sequencer.sv
+// =============================================================================
+// File        : apb_slv_sequencer.sv
+// Description : APB Slave Sequencer
+//
+// Standard UVM sequencer for the reactive APB slave agent.
+// In the current bringup implementation, the driver handles reactive
+// behavior directly without using sequences.  This sequencer is
+// instantiated for structural completeness and future extensibility.
+//
+// Confidence: HIGH — boilerplate UVM sequencer.
+// =============================================================================
+
+class apb_slv_sequencer extends uvm_sequencer #(apb_slv_seq_item);
+  `uvm_component_utils(apb_slv_sequencer)
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/apb_slv_agent/apb_slv_agent.sv
+// =============================================================================
+// File        : apb_slv_agent.sv
+// Description : APB Slave Agent
+//
+// Contains driver, monitor, and sequencer for the APB slave (reactive) side.
+// Always active — must respond to bridge-initiated APB transactions.
+//
+// Derivation:
+//   - Manifest: apb_slv interface, role=passive (from DUT perspective,
+//               but the TB agent is ACTIVE to drive PRDATA/PREADY/PSLVERR)
+//   - Intent: simple memory slave behavior
+//
+// EDIT_RECOMMENDED: Manifest says role=passive, but the agent needs to
+//   *drive* responses (PRDATA, PREADY, PSLVERR).  We treat the agent as
+//   UVM_ACTIVE so the driver is instantiated.  "Passive" in manifest means
+//   the APB side is the slave role (reactive), not UVM passive.
+//
+// Confidence: HIGH — standard UVM agent pattern.
+// =============================================================================
+
+class apb_slv_agent extends uvm_agent;
+  `uvm_component_utils(apb_slv_agent)
+
+  apb_slv_driver    drv;
+  apb_slv_monitor   mon;
+  apb_slv_sequencer sqr;
+
+  ahb2apb_bridge_dut_config cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+
+    if (!uvm_config_db#(ahb2apb_bridge_dut_config)::get(this, "", "cfg", cfg))
+      `uvm_fatal("NOCFG", "apb_slv_agent: no 'cfg' in config_db")
+
+    // Monitor always present
+    mon = apb_slv_monitor::type_id::create("mon", this);
+
+    // Driver always instantiated — reactive slave must drive responses
+    // Sequencer instantiated for future use (sequences not used in bringup)
+    if (cfg.apb_slv_is_active == UVM_ACTIVE) begin
+      drv = apb_slv_driver::type_id::create("drv", this);
+      sqr = apb_slv_sequencer::type_id::create("sqr", this);
+    end
+  endfunction
+
+  virtual function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+    // Driver does not use seq_item_port in current reactive implementation.
+    // If sequence-driven reactive model is used in future, connect here:
+    // if (cfg.apb_slv_is_active == UVM_ACTIVE)
+    //   drv.seq_item_port.connect(sqr.seq_item_export);
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/ahb2apb_bridge_scoreboard.sv
+// =============================================================================
+// File        : ahb2apb_bridge_scoreboard.sv
+// Description : Scoreboard implementing all verification goals
+//
+// Receives AHB transactions from ahb_mst_monitor and APB transactions from
+// apb_slv_monitor via analysis ports.  Compares them to verify:
+//
+//   VG1: Address passthrough — HADDR == PADDR
+//   VG2: Write data integrity — HWDATA == PWDATA (for writes)
+//   VG3: Read data integrity  — PRDATA == HRDATA (for reads)
+//   VG4: Direction preservation — HWRITE == PWRITE
+//   VG5: Error propagation — PSLVERR → HRESP (not injected in bringup,
+//        but verify no-error case: both should be 0)
+//   VG6: No lost/duplicated — AHB count == APB count, queues empty at end
+//
+// Architecture:
+//   Two FIFOs (queues) — one for AHB, one for APB.
+//   Comparison happens whenever both queues have at least one entry.
+//   In-order comparison assumes bridge preserves transaction order (no
+//   reordering for single transfers).
+//
+// Derivation:
+//   - Intent: all CHECK items
+//   - Manifest: verification_goals VG1–VG6
+//
+// Confidence: HIGH — straightforward FIFO-based scoreboard.
+// =============================================================================
+
+// Per [U5]: analysis_imp_decl macros MUST be at file scope before class
+`uvm_analysis_imp_decl(_ahb)
+`uvm_analysis_imp_decl(_apb)
+
+class ahb2apb_bridge_scoreboard extends uvm_scoreboard;
+  `uvm_component_utils(ahb2apb_bridge_scoreboard)
+
+  // Analysis implementation ports — one per interface
+  uvm_analysis_imp_ahb #(ahb_mst_seq_item, ahb2apb_bridge_scoreboard) ahb_imp;
+  uvm_analysis_imp_apb #(apb_slv_seq_item, ahb2apb_bridge_scoreboard) apb_imp;
+
+  // Transaction queues for in-order comparison
+  ahb_mst_seq_item ahb_q[$];
+  apb_slv_seq_item apb_q[$];
+
+  // Counters for VG6
+  int ahb_txn_count;
+  int apb_txn_count;
+
+  // Pass/fail tracking per VG
+  int vg_pass[string];
+  int vg_fail[string];
+
+  // Enable flag — disabled for bringup test
+  bit enable = 1;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+    ahb_txn_count = 0;
+    apb_txn_count = 0;
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    ahb_imp = new("ahb_imp", this);
+    apb_imp = new("apb_imp", this);
+
+    // Initialize VG counters
+    vg_pass["VG1"] = 0; vg_fail["VG1"] = 0;
+    vg_pass["VG2"] = 0; vg_fail["VG2"] = 0;
+    vg_pass["VG3"] = 0; vg_fail["VG3"] = 0;
+    vg_pass["VG4"] = 0; vg_fail["VG4"] = 0;
+    vg_pass["VG5"] = 0; vg_fail["VG5"] = 0;
+    vg_pass["VG6"] = 0; vg_fail["VG6"] = 0;
+  endfunction
+
+  // =========================================================================
+  // write_ahb — called by ahb_mst_monitor's analysis port
+  //
+  // Pushes AHB transaction into queue, then attempts comparison.
+  // =========================================================================
+  virtual function void write_ahb(ahb_mst_seq_item txn);
+    if (!enable) return;
+    ahb_q.push_back(txn);
+    ahb_txn_count++;
+    `uvm_info("SCB", $sformatf("AHB txn #%0d received: %s", ahb_txn_count, txn.convert2string()), UVM_MEDIUM)
+    try_compare();
+  endfunction
+
+  // =========================================================================
+  // write_apb — called by apb_slv_monitor's analysis port
+  //
+  // Pushes APB transaction into queue, then attempts comparison.
+  // =========================================================================
+  virtual function void write_apb(apb_slv_seq_item txn);
+    if (!enable) return;
+    apb_q.push_back(txn);
+    apb_txn_count++;
+    `uvm_info("SCB", $sformatf("APB txn #%0d received: %s", apb_txn_count, txn.convert2string()), UVM_MEDIUM)
+    try_compare();
+  endfunction
+
+  // =========================================================================
+  // try_compare — compare AHB and APB transactions in order
+  //
+  // Called after each new transaction arrives.  If both queues have entries,
+  // pop one from each and run all VG checks.
+  //
+  // Assumption: transactions arrive in order (FIFO, no reordering).
+  // =========================================================================
+  virtual function void try_compare();
+    ahb_mst_seq_item ahb_txn;
+    apb_slv_seq_item apb_txn;
+
+    while (ahb_q.size() > 0 && apb_q.size() > 0) begin
+      ahb_txn = ahb_q.pop_front();
+      apb_txn = apb_q.pop_front();
+
+      // ----- VG1: Address passthrough -----
+      // "Every transaction address driven on the AHB interface must appear
+      //  unchanged on the APB interface"
+      if (ahb_txn.HADDR === apb_txn.PADDR) begin
+        vg_pass["VG1"]++;
+        `uvm_info("SCB_VG1", $sformatf("PASS: HADDR=0x%08h == PADDR=0x%08h",
+                  ahb_txn.HADDR, apb_txn.PADDR), UVM_MEDIUM)
+      end else begin
+        vg_fail["VG1"]++;
+        `uvm_error("SCB_VG1", $sformatf("FAIL: HADDR=0x%08h != PADDR=0x%08h",
+                   ahb_txn.HADDR, apb_txn.PADDR))
+      end
+
+      // ----- VG4: Direction preservation -----
+      // "A write on AHB must produce a write on APB. Direction cannot flip."
+      if (ahb_txn.HWRITE === apb_txn.PWRITE) begin
+        vg_pass["VG4"]++;
+        `uvm_info("SCB_VG4", $sformatf("PASS: HWRITE=%0b == PWRITE=%0b",
+                  ahb_txn.HWRITE, apb_txn.PWRITE), UVM_MEDIUM)
+      end else begin
+        vg_fail["VG4"]++;
+        `uvm_error("SCB_VG4", $sformatf("FAIL: HWRITE=%0b != PWRITE=%0b",
+                   ahb_txn.HWRITE, apb_txn.PWRITE))
+      end
+
+      // ----- VG2: Write data integrity -----
+      // "Write data sent on AHB must reach APB without corruption"
+      // Only checked for write transactions
+      if (ahb_txn.HWRITE == 1'b1) begin
+        if (ahb_txn.HWDATA === apb_txn.PWDATA) begin
+          vg_pass["VG2"]++;
+          `uvm_info("SCB_VG2", $sformatf("PASS: HWDATA=0x%08h == PWDATA=0x%08h",
+                    ahb_txn.HWDATA, apb_txn.PWDATA), UVM_MEDIUM)
+        end else begin
+          vg_fail["VG2"]++;
+          `uvm_error("SCB_VG2", $sformatf("FAIL: HWDATA=0x%08h != PWDATA=0x%08h",
+                     ahb_txn.HWDATA, apb_txn.PWDATA))
+        end
+      end
+
+      // ----- VG3: Read data integrity -----
+      // "Read data returned from APB must reach the AHB master unchanged"
+      // Only checked for read transactions
+      if (ahb_txn.HWRITE == 1'b0) begin
+        if (apb_txn.PRDATA === ahb_txn.HRDATA) begin
+          vg_pass["VG3"]++;
+          `uvm_info("SCB_VG3", $sformatf("PASS: PRDATA=0x%08h == HRDATA=0x%08h",
+                    apb_txn.PRDATA, ahb_txn.HRDATA), UVM_MEDIUM)
+        end else begin
+          vg_fail["VG3"]++;
+          `uvm_error("SCB_VG3", $sformatf("FAIL: PRDATA=0x%08h != HRDATA=0x%08h",
+                     apb_txn.PRDATA, ahb_txn.HRDATA))
+        end
+      end
+
+      // ----- VG5: Error propagation -----
+      // "An error response from APB slave must be visible on AHB side"
+      // For bringup: no errors injected — verify both sides show no error
+      if (apb_txn.PSLVERR === ahb_txn.HRESP) begin
+        vg_pass["VG5"]++;
+        `uvm_info("SCB_VG5", $sformatf("PASS: PSLVERR=%0b == HRESP=%0b",
+                  apb_txn.PSLVERR, ahb_txn.HRESP), UVM_MEDIUM)
+      end else begin
+        vg_fail["VG5"]++;
+        `uvm_error("SCB_VG5", $sformatf("FAIL: PSLVERR=%0b != HRESP=%0b",
+                   apb_txn.PSLVERR, ahb_txn.HRESP))
+      end
+    end
+  endfunction
+
+  // =========================================================================
+  // check_phase: final verification at end of simulation
+  //
+  // VG6: No lost or duplicated transactions
+  //   - AHB count must equal APB count
+  //   - Both queues must be empty (no unmatched transactions)
+  // Also report summary for all VGs.
+  // =========================================================================
+  virtual function void check_phase(uvm_phase phase);
+    super.check_phase(phase);
+
+    if (!enable) begin
+      `uvm_info("SCB", "Scoreboard disabled — skipping check_phase", UVM_LOW)
+      return;
+    end
+
+    `uvm_info("SCB", "========== SCOREBOARD CHECK PHASE ==========", UVM_LOW)
+
+    // ----- VG6: Transaction count -----
+    if (ahb_txn_count == apb_txn_count && ahb_q.size() == 0 && apb_q.size() == 0) begin
+      vg_pass["VG6"] = 1;
+      `uvm_info("SCB_VG6", $sformatf("PASS: AHB=%0d APB=%0d transactions, queues empty",
+                ahb_txn_count, apb_txn_count), UVM_LOW)
+    end else begin
+      vg_fail["VG6"] = 1;
+      `uvm_error("SCB_VG6", $sformatf("FAIL: AHB=%0d APB=%0d transactions, ahb_q=%0d apb_q=%0d remaining",
+                 ahb_txn_count, apb_txn_count, ahb_q.size(), apb_q.size()))
+    end
+
+    // ----- Summary Report -----
+    `uvm_info("SCB", "---------- Verification Goal Summary ----------", UVM_LOW)
+    `uvm_info("SCB", $sformatf("VG1 (Address)   : PASS=%0d FAIL=%0d", vg_pass["VG1"], vg_fail["VG1"]), UVM_LOW)
+    `uvm_info("SCB", $sformatf("VG2 (Write Data) : PASS=%0d FAIL=%0d", vg_pass["VG2"], vg_fail["VG2"]), UVM_LOW)
+    `uvm_info("SCB", $sformatf("VG3 (Read Data)  : PASS=%0d FAIL=%0d", vg_pass["VG3"], vg_fail["VG3"]), UVM_LOW)
+    `uvm_info("SCB", $sformatf("VG4 (Direction)  : PASS=%0d FAIL=%0d", vg_pass["VG4"], vg_fail["VG4"]), UVM_LOW)
+    `uvm_info("SCB", $sformatf("VG5 (Error Prop) : PASS=%0d FAIL=%0d", vg_pass["VG5"], vg_fail["VG5"]), UVM_LOW)
+    `uvm_info("SCB", $sformatf("VG6 (Count Match): PASS=%0d FAIL=%0d", vg_pass["VG6"], vg_fail["VG6"]), UVM_LOW)
+    `uvm_info("SCB", "------------------------------------------------", UVM_LOW)
+  endfunction
+
+  // =========================================================================
+  // report_phase: print final PASS/FAIL based on all VGs
+  // =========================================================================
+  virtual function void report_phase(uvm_phase phase);
+    int total_fail;
+    super.report_phase(phase);
+
+    if (!enable) return;
+
+    total_fail = vg_fail["VG1"] + vg_fail["VG2"] + vg_fail["VG3"] +
+                 vg_fail["VG4"] + vg_fail["VG5"] + vg_fail["VG6"];
+
+    if (total_fail == 0)
+      `uvm_info("SCB", "========== ALL VERIFICATION GOALS PASSED ==========", UVM_NONE)
+    else
+      `uvm_error("SCB", $sformatf("========== %0d VERIFICATION GOAL FAILURES ==========", total_fail))
+  endfunction
+
+endclass
+END_FILE
+
+FILE: env/ahb2apb_bridge_env.sv
+// =============================================================================
+// File        : ahb2apb_bridge_env.sv
+// Description : Top-level UVM Environment
+//
+// Instantiates:
+//   - ahb_mst_agent: active — drives AHB transactions into bridge
+//   - apb_slv_agent: active — reactive slave responds to bridge APB master
+//   - scoreboard: compares AHB ↔ APB transactions for all VGs
+//
+// Derivation:
+//   - Manifest: two interfaces (ahb_mst, apb_slv)
+//   - Intent: monitor both sides, compare in scoreboard
+//
+// Confidence: HIGH — standard UVM env pattern.
+// =============================================================================
+
+class ahb2apb_bridge_env extends uvm_env;
+  `uvm_component_utils(ahb2apb_bridge_env)
+
+  ahb_mst_agent            ahb_agt;
+  apb_slv_agent            apb_agt;
+  ahb2apb_bridge_scoreboard scb;
+
+  ahb2apb_bridge_dut_config cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+
+    // Retrieve configuration from config_db
+    if (!uvm_config_db#(ahb2apb_bridge_dut_config)::get(this, "", "cfg", cfg))
+      `uvm_fatal("NOCFG", "ahb2apb_bridge_env: no 'cfg' in config_db")
+
+    // Propagate config down to agents
+    uvm_config_db#(ahb2apb_bridge_dut_config)::set(null, {get_full_name(), ".*"}, "cfg", cfg);
+
+    // Instantiate agents
+    ahb_agt = ahb_mst_agent::type_id::create("ahb_agt", this);
+    apb_agt = apb_slv_agent::type_id::create("apb_agt", this);
+
+    // Instantiate scoreboard
+    scb = ahb2apb_bridge_scoreboard::type_id::create("scb", this);
+  endfunction
+
+  virtual function void connect_phase(uvm_phase phase);
+    super.connect_phase(phase);
+
+    // Connect monitor analysis ports to scoreboard
+    ahb_agt.mon.ap.connect(scb.ahb_imp);
+    apb_agt.mon.ap.connect(scb.apb_imp);
+  endfunction
+
+endclass
+END_FILE
+
+FILE: sequences/ahb_mst_bringup_seq.sv
+// =============================================================================
+// File        : ahb_mst_bringup_seq.sv
+// Description : AHB Master Bringup Sequence
+//
+// Drives a configurable number of simple single AHB transactions.
+// Uses $urandom / $urandom_range per [TC1] — no .randomize().
+//
+// For bringup_test:  num_txns = 1  (prove infrastructure works)
+// For sanity_test:   num_txns = 5  (from manifest, exercise all VGs)
+//
+// Address range: 0x0000_0000 to 0x0000_0EFF (APB range excluding register
+//   block 0x0F00–0x0F0F to avoid register accesses in bringup).
+//
+// EDIT_RECOMMENDED: Adjust address range if DUT address decode differs.
+//
+// Derivation:
+//   - Intent: "mix of read and write transactions, random addresses within
+//             valid APB range, random data values for writes"
+//   - Manifest: num_txns=5
+//   - IP-XACT: APB range 0–0xFFFF, REG_BASE=0x0F00
+//
+// Confidence: HIGH — simple sequence with manual randomization.
+// =============================================================================
+
+class ahb_mst_bringup_seq extends uvm_sequence #(ahb_mst_seq_item);
+  `uvm_object_utils(ahb_mst_bringup_seq)
+
+  // Number of transactions to drive
+  int num_txns = 1;
+
+  function new(string name = "ahb_mst_bringup_seq");
+    super.new(name);
+  endfunction
+
+  virtual task body();
+    ahb_mst_seq_item req;
+    bit [31:0] addr;
+
+    `uvm_info("AHB_SEQ", $sformatf("Starting sequence with %0d transactions", num_txns), UVM_LOW)
+
+    for (int i = 0; i < num_txns; i++) begin
+      req = ahb_mst_seq_item::type_id::create($sformatf("req_%0d", i));
+
+      // ----- Manual randomization per [TC1] -----
+      // Generate address in valid APB range, avoiding register block
+      // APB range: 0x0000 to 0xFFFF
+      // Register block: 0x0F00 to 0x0F0F (avoid)
+      // Strategy: generate address, if in reg range shift it
+      addr = $urandom_range(0, 32'h0000_0EFF);
+      // Word-align the address (HSIZE=word → bits [1:0] = 0)
+      addr = {addr[31:2], 2'b00};
+
+      req.HADDR  = addr;
+      req.HWRITE = $urandom_range(0, 1);  // Random read or write
+      req.HWDATA = {$urandom, $urandom};  // Random 32-bit data
+      // EDIT_OPTIONAL: $urandom returns 32 bits; using just $urandom is fine
+      req.HWDATA = $urandom;
+
+      // Apply defaults via post_randomize (HTRANS=NONSEQ, HBURST=SINGLE, etc.)
+      req.post_randomize();
+
+      `uvm_info("AHB_SEQ", $sformatf("Txn[%0d]: %s", i, req.convert2string()), UVM_MEDIUM)
+
+      start_item(req);
+      finish_item(req);
+
+      `uvm_info("AHB_SEQ", $sformatf("Txn[%0d] done: %s", i, req.convert2string()), UVM_MEDIUM)
+    end
+
+    `uvm_info("AHB_SEQ", "Sequence complete", UVM_LOW)
+  endtask
+
+endclass
+END_FILE
+
+FILE: sequences/apb_slv_bringup_seq.sv
+// =============================================================================
+// File        : apb_slv_bringup_seq.sv
+// Description : APB Slave Bringup Sequence (placeholder)
+//
+// In the current architecture, the APB slave driver handles reactive
+// behavior directly (embedded memory model) without sequences.
+// This file is provided as a placeholder for future sequence-driven
+// reactive implementations.
+//
+// Per [U3]: reactive sequences use `forever` loop, not `repeat()`.
+//
+// Confidence: HIGH — placeholder with correct structure.
+//
+// EDIT_OPTIONAL: If you convert the APB slave driver to use sequences,
+//   implement the reactive memory model here instead of in the driver.
+// =============================================================================
+
+class apb_slv_bringup_seq extends uvm_sequence #(apb_slv_seq_item);
+  `uvm_object_utils(apb_slv_bringup_seq)
+
+  function new(string name = "apb_slv_bringup_seq");
+    super.new(name);
+  endfunction
+
+  // =========================================================================
+  // body — placeholder for reactive slave sequence
+  //
+  // Per [U3]: use forever loop for reactive/passive sequences.
+  // Currently not used because the driver handles reactive behavior.
+  // =========================================================================
+  virtual task body();
+    // Placeholder: reactive sequence not used in bringup
+    // If activated, would look like:
+    //
+    // forever begin
+    //   apb_slv_seq_item req;
+    //   req = apb_slv_seq_item::type_id::create("req");
+    //   start_item(req);
+    //   // Populate response fields based on observed DUT signals
+    //   req.PREADY  = 1'b1;
+    //   req.PSLVERR = 1'b0;
+    //   req.PRDATA  = 32'hDEAD_BEEF; // From memory model
+    //   req.post_randomize();
+    //   finish_item(req);
+    // end
+
+    `uvm_info("APB_SLV_SEQ", "APB slave sequence placeholder — not used in bringup", UVM_LOW)
+  endtask
+
+endclass
+END_FILE
+
+FILE: tests/ahb2apb_bridge_bringup_test.sv
+// =============================================================================
+// File        : ahb2apb_bridge_bringup_test.sv
+// Description : Bringup Test — Infrastructure Validation
+//
+// Purpose:
+//   Drive ONE transaction through the bridge.  No scoreboard checks.
+//   If this test passes, the testbench infrastructure (interfaces, config_db,
+//   agent instantiation, driver/sequencer connections, clock, reset) is working.
+//   If it fails, the problem is in the TB, not the DUT.
+//
+// Pass criteria:
+//   - Simulation completes without UVM_FATAL or UVM_ERROR
+//   - No timeout
+//
+// Derivation:
+//   - Manifest: pass_criteria.max_uvm_errors=0, max_uvm_fatals=0
+//   - Intent: bringup test is explicitly a single-transaction smoke test
+//
+// Confidence: HIGH — simple test, minimal moving parts.
+// =============================================================================
+
+class ahb2apb_bridge_bringup_test extends uvm_test;
+  `uvm_component_utils(ahb2apb_bridge_bringup_test)
+
+  ahb2apb_bridge_env          env;
+  ahb2apb_bridge_dut_config   cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  // =========================================================================
+  // build_phase: create config, disable scoreboard, build environment
+  // =========================================================================
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+
+    // Create and configure
+    cfg = ahb2apb_bridge_dut_config::type_id::create("cfg");
+    cfg.num_txns = 1;              // Bringup: single transaction
+    cfg.scoreboard_enable = 0;     // No scoreboard in bringup
+    cfg.ahb_mst_is_active = UVM_ACTIVE;
+    cfg.apb_slv_is_active = UVM_ACTIVE;
+
+    // Publish config to all children via config_db
+    // Per [U2]: use null scope, not this
+    uvm_config_db#(ahb2apb_bridge_dut_config)::set(null, "*", "cfg", cfg);
+
+    // Create environment
+    env = ahb2apb_bridge_env::type_id::create("env", this);
+  endfunction
+
+  // =========================================================================
+  // end_of_elaboration_phase: disable scoreboard
+  // =========================================================================
+  virtual function void end_of_elaboration_phase(uvm_phase phase);
+    super.end_of_elaboration_phase(phase);
+    // Disable scoreboard for bringup
+    env.scb.enable = 0;
+    `uvm_info("BRINGUP", "Scoreboard DISABLED for bringup test", UVM_LOW)
+  endfunction
+
+  // =========================================================================
+  // run_phase: drive one transaction, then finish
+  //
+  // Per [U6]: objections raised/dropped ONLY in base_test run_phase.
+  // =========================================================================
+  virtual task run_phase(uvm_phase phase);
+    ahb_mst_bringup_seq ahb_seq;
+
+    phase.raise_objection(this, "bringup_test: starting");
+
+    `uvm_info("BRINGUP", "=== BRINGUP TEST START ===", UVM_NONE)
+
+    // Wait for reset deassertion + a few clocks for bridge to initialize
+    // Reset is asserted for 100ns per manifest, period=10ns
+    #150;  // 15 clock cycles — well past reset release
+
+    // Create and start AHB master sequence (1 transaction)
+    ahb_seq = ahb_mst_bringup_seq::type_id::create("ahb_seq");
+    ahb_seq.num_txns = 1;
+    ahb_seq.start(env.ahb_agt.sqr);
+
+    // Drain time from manifest: 200ns
+    #200;
+
+    `uvm_info("BRINGUP", "=== BRINGUP TEST COMPLETE ===", UVM_NONE)
+
+    phase.drop_objection(this, "bringup_test: done");
+  endtask
+
+  // =========================================================================
+  // report_phase: print TEST PASSED/FAILED based on UVM error count
+  // =========================================================================
+  virtual function void report_phase(uvm_phase phase);
+    uvm_report_server svr;
+    super.report_phase(phase);
+
+    svr = uvm_report_server::get_server();
+
+    if (svr.get_severity_count(UVM_FATAL) + svr.get_severity_count(UVM_ERROR) == 0)
+      `uvm_info("BRINGUP", "========== TEST PASSED ==========", UVM_NONE)
+    else
+      `uvm_info("BRINGUP", "========== TEST FAILED ==========", UVM_NONE)
+  endfunction
+
+endclass
+END_FILE
+
+FILE: tests/ahb2apb_bridge_sanity_test.sv
+// =============================================================================
+// File        : ahb2apb_bridge_sanity_test.sv
+// Description : Sanity Test — Full Scoreboard Verification
+//
+// Purpose:
+//   Drive num_txns (5) transactions through the bridge with full scoreboard
+//   checking.  Verifies ALL verification goals (VG1–VG6).
+//   If bringup_test passes but this test fails, the DUT behavior is wrong.
+//
+// Pass criteria:
+//   - All VG1–VG6 checks pass
+//   - No UVM_ERROR or UVM_FATAL
+//   - "TEST PASSED" printed
+//
+// Derivation:
+//   - Manifest: stimulus.num_txns=5, all verification goals
+//   - Intent: full CHECK section implemented via scoreboard
+//
+// Confidence: HIGH — extends bringup with more transactions and scoreboard.
+// =============================================================================
+
+class ahb2apb_bridge_sanity_test extends uvm_test;
+  `uvm_component_utils(ahb2apb_bridge_sanity_test)
+
+  ahb2apb_bridge_env          env;
+  ahb2apb_bridge_dut_config   cfg;
+
+  function new(string name, uvm_component parent);
+    super.new(name, parent);
+  endfunction
+
+  // =========================================================================
+  // build_phase: create config with full checking enabled
+  // =========================================================================
+  virtual function void build_phase(uvm_phase phase);
+    super.build_phase(phase);
+
+    cfg = ahb2apb_bridge_dut_config::type_id::create("cfg");
+    cfg.num_txns = 5;              // From manifest: stimulus.num_txns = 5
+    cfg.scoreboard_enable = 1;     // Full scoreboard checking
+    cfg.ahb_mst_is_active = UVM_ACTIVE;
+    cfg.apb_slv_is_active = UVM_ACTIVE;
+
+    // Per [U2]: null scope
+    uvm_config_db#(ahb2apb_bridge_dut_config)::set(null, "*", "cfg", cfg);
+
+    env = ahb2apb_bridge_env::type_id::create("env", this);
+  endfunction
+
+  // =========================================================================
+  // end_of_elaboration_phase: ensure scoreboard is enabled
+  // =========================================================================
+  virtual function void end_of_elaboration_phase(uvm_phase phase);
+    super.end_of_elaboration_phase(phase);
+    env.scb.enable = 1;
+    `uvm_info("SANITY", "Scoreboard ENABLED for sanity test", UVM_LOW)
+  endfunction
+
+  // =========================================================================
+  // run_phase: drive num_txns transactions with full scoreboard
+  //
+  // Per [U6]: objections raised/dropped only here.
+  // =========================================================================
+  virtual task run_phase(uvm_phase phase);
+    ahb_mst_bringup_seq ahb_seq;
+
+    phase.raise_objection(this, "sanity_test: starting");
+
+    `uvm_info("SANITY", "=== SANITY TEST START ===", UVM_NONE)
+
+    // Wait for reset deassertion + initialization
+    #150;
+
+    // Create and start AHB master sequence with 5 transactions
+    ahb_seq = ahb_mst_bringup_seq::type_id::create("ahb_seq");
+    ahb_seq.num_txns = cfg.num_txns;
+    ahb_seq.start(env.ahb_agt.sqr);
+
+    // Drain time: 200ns per manifest
+    #(cfg.drain_time_ns);
+
+    `uvm_info("SANITY", "=== SANITY TEST COMPLETE ===", UVM_NONE)
+
+    phase.drop_objection(this, "sanity_test: done");
+  endtask
+
+  // =========================================================================
+  // report_phase: print TEST PASSED/FAILED
+  // =========================================================================
+  virtual function void report_phase(uvm_phase phase);
+    uvm_report_server svr;
+    super.report_phase(phase);
+
+    svr = uvm_report_server::get_server();
+
+    if (svr.get_severity_count(UVM_FATAL) + svr.get_severity_count(UVM_ERROR) == 0)
+      `uvm_info("SANITY", "========== TEST PASSED ==========", UVM_NONE)
+    else
+      `uvm_info("SANITY", "========== TEST FAILED ==========", UVM_NONE)
+  endfunction
+
+endclass
+END_FILE
+
+FILE: top/tb_top.sv
+// =============================================================================
+// File        : tb_top.sv
+// Description : Top-level testbench module
+//
+// This is the ONLY file with a `timescale directive per [TC2].
+// Instantiates:
+//   - Clock and reset generation
+//   - DUT (ahb2apb_bridge)
+//   - AHB and APB interfaces
+//   - Virtual interface registration in config_db
+//   - UVM test launch
+//
+// Derivation:
+//   - Manifest: HCLK period=10ns, HRESETn active-low asserted 100ns
+//   - IP-XACT: all DUT port names and widths
+//   - Tool: Questa FSE, UVM 1.1d, +define+UVM_NO_DPI
+//
+// Confidence: HIGH for structure, MEDIUM for port connections.
+//
+// EDIT_REQUIRED: Every DUT port connection should be verified against
+//   the actual RTL module declaration.  IP-XACT names may differ from RTL.
+// =============================================================================
+
+`timescale 1ns/1ps
+
+module tb_top;
+
+  import uvm_pkg::*;
+  `include "uvm_macros.svh"
+
+  // Import the project package — generated by the script
+  import ahb2apb_bridge_pkg::*;
+
+  // =========================================================================
+  // Clock Generation
+  //
+  // HCLK: 10ns period (100MHz) per manifest.
+  // Single clock domain — bridge uses HCLK for both AHB and APB.
+  // Per [U8]: only tb_top generates clock.
+  // =========================================================================
+  logic HCLK;
+  initial HCLK = 0;
+  always #5 HCLK = ~HCLK;  // 5ns half-period = 10ns period
+
+  // =========================================================================
+  // Reset Generation
+  //
+  // HRESETn: active-low, asserted for 100ns per manifest.
+  // Per IP-XACT: "All outputs deasserted. HREADY_OUT driven high after
+  //   reset release."
+  // Per [U8]: only tb_top generates reset.
+  // =========================================================================
+  logic HRESETn;
+  initial begin
+    HRESETn = 0;       // Assert reset at time 0
+    #100;              // Hold for 100ns per manifest
+    HRESETn = 1;       // Release reset
+  end
+
+  // =========================================================================
+  // Interface Instantiation
+  // =========================================================================
+  ahb_mst_if ahb_if (.HCLK(HCLK), .HRESETn(HRESETn));
+  apb_slv_if apb_if (.HCLK(HCLK), .HRESETn(HRESETn));
+
+  // =========================================================================
+  // DUT Instantiation
+  //
+  // Port connections derived from IP-XACT.
+  // EDIT_REQUIRED: Verify each port name matches the RTL module declaration
+  //   exactly.  IP-XACT names sometimes differ from actual RTL port names.
+  //
+  // EDIT_RECOMMENDED: If DUT has parameters, pass them here:
+  //   #(.ADDR_WIDTH(32), .DATA_WIDTH(32), ...)
+  // =========================================================================
+  ahb2apb_bridge #(
+    // EDIT_RECOMMENDED: Verify parameter names match RTL
+    .ADDR_WIDTH   (32),
+    .DATA_WIDTH   (32)
+  ) dut (
+    // ---- Clock and Reset ----
+    .HCLK         (HCLK),                    // EDIT_REQUIRED: verify RTL port name
+    .HRESETn      (HRESETn),                 // EDIT_REQUIRED: verify RTL port name
+
+    // ---- AHB Slave Interface (DUT inputs from TB) ----
+    .HADDR        (ahb_if.HADDR),            // EDIT_REQUIRED: verify RTL port name
+    .HTRANS       (ahb_if.HTRANS),           // EDIT_REQUIRED: verify RTL port name
+    .HWRITE       (ahb_if.HWRITE),           // EDIT_REQUIRED: verify RTL port name
+    .HSIZE        (ahb_if.HSIZE),            // EDIT_REQUIRED: verify RTL port name
+    .HBURST       (ahb_if.HBURST),           // EDIT_REQUIRED: verify RTL port name
+    .HWDATA       (ahb_if.HWDATA),           // EDIT_REQUIRED: verify RTL port name
+    .HSEL         (ahb_if.HSEL),             // EDIT_REQUIRED: verify RTL port name
+    .HREADY_IN    (ahb_if.HREADY_IN),        // EDIT_REQUIRED: verify RTL port name
+
+    // ---- AHB Slave Interface (DUT outputs to TB) ----
+    .HRDATA       (ahb_if.HRDATA),           // EDIT_REQUIRED: verify RTL port name
+    .HREADY_OUT   (ahb_if.HREADY_OUT),       // EDIT_REQUIRED: verify RTL port name
+    .HRESP        (ahb_if.HRESP),            // EDIT_REQUIRED: verify RTL port name
+
+    // ---- APB Master Interface (DUT outputs to TB) ----
+    .PADDR        (apb_if.PADDR),            // EDIT_REQUIRED: verify RTL port name
+    .PSEL         (apb_if.PSEL),             // EDIT_REQUIRED: verify RTL port name
+    .PENABLE      (apb_if.PENABLE),          // EDIT_REQUIRED: verify RTL port name
+    .PWRITE       (apb_if.PWRITE),           // EDIT_REQUIRED: verify RTL port name
+    .PWDATA       (apb_if.PWDATA),           // EDIT_REQUIRED: verify RTL port name
+
+    // ---- APB Master Interface (DUT inputs from TB) ----
+    .PRDATA       (apb_if.PRDATA),           // EDIT_REQUIRED: verify RTL port name
+    .PREADY       (apb_if.PREADY),           // EDIT_REQUIRED: verify RTL port name
+    .PSLVERR      (apb_if.PSLVERR)           // EDIT_REQUIRED: verify RTL port name
+  );
+
+  // =========================================================================
+  // Virtual Interface Registration
+  //
+  // Per [U1]: no modport suffix in config_db type.
+  // Per [U2]: use null scope for set().
+  // =========================================================================
+  initial begin
+    // Register AHB master interface — accessed by ahb_mst driver and monitor
+    uvm_config_db#(virtual ahb_mst_if)::set(null, "uvm_test_top.env.ahb_agt.*", "vif", ahb_if);
+
+    // Register APB slave interface — accessed by apb_slv driver and monitor
+    uvm_config_db#(virtual apb_slv_if)::set(null, "uvm_test_top.env.apb_agt.*", "vif", apb_if);
+  end
+
+  // =========================================================================
+  // UVM Test Launch
+  //
+  // Test name selected via +UVM_TESTNAME on command line.
+  // =========================================================================
+  initial begin
+    run_test();
+  end
+
+  // =========================================================================
+  // Simulation timeout safety net
+  //
+  // Prevents infinite simulation if something hangs.
+  // 10,000ns should be plenty for 5 transactions at 10ns period.
+  //
+  // EDIT_OPTIONAL: Increase if your DUT has long latencies.
+  // =========================================================================
+  initial begin
+    #10_000;
+    `uvm_fatal("TIMEOUT", "Simulation timed out after 10,000ns")
+  end
+
+endmodule
+END_FILE
+
+FILE: top/ahb2apb_bridge_dut_bind.sv
+// =============================================================================
+// File        : ahb2apb_bridge_dut_bind.sv
+// Description : DUT Bind File (placeholder for assertions/coverage)
+//
+// This file uses SystemVerilog `bind` to attach assertion modules or
+// coverage interfaces to the DUT without modifying RTL.
+//
+// For bringup: this file is a placeholder.  Assertions and coverage are
+// explicitly OUT OF SCOPE per the verification intent.
+//
+// Derivation:
+//   - Intent: "Out of scope: assertions, coverage collection"
+//   - IP-XACT: DUT port list for reference
+//
+// EDIT_REQUIRED: When adding assertions, verify all port names match the
+//   RTL module declaration exactly.  IP-XACT names used as reference below.
+//
+// Confidence: N/A — placeholder only.
+// =============================================================================
+
+// =============================================================================
+// Example bind (commented out — activate when adding protocol assertions):
+//
+// bind ahb2apb_bridge ahb_protocol_checker #(
+//   .ADDR_WIDTH(32),
+//   .DATA_WIDTH(32)
+// ) u_ahb_checker (
+//   .HCLK       (HCLK),          // EDIT_REQUIRED: verify RTL port name
+//   .HRESETn    (HRESETn),       // EDIT_REQUIRED: verify RTL port name
+//   .HADDR      (HADDR),         // EDIT_REQUIRED: verify RTL port name
+//   .HTRANS     (HTRANS),        // EDIT_REQUIRED: verify RTL port name
+//   .HWRITE     (HWRITE),        // EDIT_REQUIRED: verify RTL port name
+//   .HSIZE      (HSIZE),         // EDIT_REQUIRED: verify RTL port name
+//   .HBURST     (HBURST),        // EDIT_REQUIRED: verify RTL port name
+//   .HWDATA     (HWDATA),        // EDIT_REQUIRED: verify RTL port name
+//   .HSEL       (HSEL),          // EDIT_REQUIRED: verify RTL port name
+//   .HREADY_IN  (HREADY_IN),     // EDIT_REQUIRED: verify RTL port name
+//   .HRDATA     (HRDATA),        // EDIT_REQUIRED: verify RTL port name
+//   .HREADY_OUT (HREADY_OUT),    // EDIT_REQUIRED: verify RTL port name
+//   .HRESP      (HRESP),         // EDIT_REQUIRED: verify RTL port name
+//   .PADDR      (PADDR),         // EDIT_REQUIRED: verify RTL port name
+//   .PSEL       (PSEL),          // EDIT_REQUIRED: verify RTL port name
+//   .PENABLE    (PENABLE),       // EDIT_REQUIRED: verify RTL port name
+//   .PWRITE     (PWRITE),        // EDIT_REQUIRED: verify RTL port name
+//   .PWDATA     (PWDATA),        // EDIT_REQUIRED: verify RTL port name
+//   .PRDATA     (PRDATA),        // EDIT_REQUIRED: verify RTL port name
+//   .PREADY     (PREADY),        // EDIT_REQUIRED: verify RTL port name
+//   .PSLVERR    (PSLVERR)        // EDIT_REQUIRED: verify RTL port name
+// );
+// =============================================================================
+
+// Placeholder module — keeps the file compilable
+// This module is empty; bind statements above are commented out.
+// Uncomment and populate when protocol assertions are in scope.
+END_FILE

@@ -1,0 +1,4 @@
+.*.swp 
+.claude/ 
+ahb2apb_bridge_llm_uvmtb_v1/ 
+ch02_testplan/outputs/*_raw_attempt*.txt 

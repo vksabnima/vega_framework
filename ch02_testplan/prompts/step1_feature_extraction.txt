@@ -1,0 +1,57 @@
+VEGA Step 1 — Feature Extraction and Clarification
+====================================================
+
+You are assisting a verification strategist.
+
+Task: Read the following design specification and extract a
+structured feature list.
+
+For each feature, output:
+1) Feature_ID (e.g. F-001)
+2) Feature_Name
+3) Description (one sentence)
+4) Source (section number in the spec)
+5) Ambiguities (anything unclear that needs clarification)
+6) Cross-dependencies (other features this interacts with)
+
+Rules:
+- Extract only features explicitly stated in the spec.
+- Do NOT infer features not described in the specification.
+- Flag every ambiguity. Do not resolve ambiguities yourself.
+- If a section is unclear, output NEEDS_CLARIFICATION.
+
+Specification:
+<<< PASTE YOUR SPECIFICATION TEXT HERE >>>
+
+VEGA Step 1b — Feature List Review
+====================================================
+
+You are assisting a verification strategist.
+
+Task: Review the following extracted feature list against
+the original specification.
+
+For each feature check:
+1) Is the Feature_ID unique and sequential?
+2) Does the description match what the spec says exactly?
+3) Are all ambiguities genuine — not assumptions in disguise?
+4) Are cross-dependencies complete — nothing missing?
+5) Are there any features in the spec that were missed?
+
+Output:
+- PASS / FAIL per feature
+- List of missed features (if any)
+- List of ambiguities that need architect sign-off before
+  proceeding to Step 2
+
+Rules:
+- Do NOT add features not in the spec.
+- Do NOT resolve ambiguities — flag them only.
+- If the feature list is complete and correct, output
+  READY FOR STEP 2.
+
+Feature list to review:
+<<< PASTE STEP 1 OUTPUT HERE >>>
+
+Original specification:
+<<< PASTE YOUR SPECIFICATION TEXT HERE >>>

@@ -1,0 +1,100 @@
+{
+  "_schema"  : "vega-manifest-v2",
+  "_purpose" : "Verification intent document — authored by verification engineer",
+  "_note"    : "This is the only file the engineer writes per project. No signal names. No class names. No UVM knowledge required.",
+
+  "project": {
+    "design"     : "ahb2apb_bridge",
+    "description": "AHB-to-APB bridge — converts AHB master transactions to APB slave transactions",
+    "engineer"   : "Vikash Kumar",
+    "date"       : "2026-03-04"
+  },
+
+  "tool": {
+    "simulator"   : "questa_fse",
+    "questa_path" : "C:\\intelFPGA\\22.1std\\questa_fse",
+    "uvm_version" : "uvm-1.1d",
+    "license_file": "C:\\intelFPGA\\22.1std\\licenses\\LR-287299_License.dat"
+  },
+
+  "dut": {
+    "top_module": "ahb2apb_bridge",
+    "rtl_files" : ["../../rtl_design/ahb2apb_bridge.sv"],
+    "parameters": {
+      "ADDR_WIDTH": 32,
+      "DATA_WIDTH": 32
+    }
+  },
+
+  "clocks": [
+    {
+      "name"     : "HCLK",
+      "period_ns": 10
+    }
+  ],
+
+  "resets": [
+    {
+      "name"      : "HRESETn",
+      "active_low": true,
+      "assert_ns" : 100
+    }
+  ],
+
+  "interfaces": [
+    {
+      "name"    : "ahb_mst",
+      "protocol": "ahb",
+      "role"    : "active"
+    },
+    {
+      "name"    : "apb_slv",
+      "protocol": "apb",
+      "role"    : "passive"
+    }
+  ],
+
+  "stimulus": {
+    "num_txns"     : 5,
+    "drain_time_ns": 200,
+    "description"  : "Small fixed transaction count — enough to exercise each verification goal once"
+  },
+
+  "verification_goals": [
+    {
+      "id"      : "VG1",
+      "priority": "must",
+      "goal"    : "Every transaction address driven on the AHB interface must appear unchanged on the APB interface"
+    },
+    {
+      "id"      : "VG2",
+      "priority": "must",
+      "goal"    : "Write data sent on AHB must reach APB without corruption"
+    },
+    {
+      "id"      : "VG3",
+      "priority": "must",
+      "goal"    : "Read data returned from APB must reach the AHB master unchanged"
+    },
+    {
+      "id"      : "VG4",
+      "priority": "must",
+      "goal"    : "A write transaction on AHB must produce a write on APB. A read must produce a read. Direction cannot flip."
+    },
+    {
+      "id"      : "VG5",
+      "priority": "must",
+      "goal"    : "An error response from the APB slave must be visible as an error response on the AHB side"
+    },
+    {
+      "id"      : "VG6",
+      "priority": "must",
+      "goal"    : "No transaction must be lost or duplicated — every AHB transaction must produce exactly one APB transaction"
+    }
+  ],
+
+  "pass_criteria": {
+    "max_uvm_errors": 0,
+    "max_uvm_fatals": 0
+  }
+}

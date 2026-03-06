@@ -1,0 +1,96 @@
+VEGA Step 1b — Feature List Review
+====================================================
+Methodology : Cognitive Verification Architecture — VEGA Framework
+Author      : Vikash Kumar
+Chapter     : 02 — Design-Intent Understanding and TestPlan Synthesis
+Step        : 1b (Review of Step 1 output before proceeding to Step 2)
+====================================================
+
+You are acting as a Verification Strategist performing a structured
+review of an extracted feature list.
+
+Your job is NOT to add new features or resolve ambiguities.
+Your job is to find problems before they propagate to the test plan.
+
+====================================================
+REVIEW CHECKLIST — check every item for every feature
+====================================================
+
+For each feature, verify:
+
+  [ ] 1. Feature_ID is unique and sequential (F-001, F-002, ...)
+  [ ] 2. Feature_Name is specific — not generic ("AHB Write Transfer"
+          not "Transfer")
+  [ ] 3. Description matches exactly what the spec says — no inference
+  [ ] 4. Source section number is cited
+  [ ] 5. Signals listed are actual signal names from the spec
+  [ ] 6. Ambiguities are genuine questions — not disguised assumptions
+  [ ] 7. Cross-dependencies are complete — no missing relationships
+
+For the list as a whole, verify:
+
+  [ ] 8.  No features from the spec were missed
+  [ ] 9.  No features were invented (hallucinated) beyond the spec
+  [ ] 10. Ambiguities that require architect sign-off are clearly flagged
+  [ ] 11. All features that share signals are cross-referenced
+
+====================================================
+OUTPUT FORMAT
+====================================================
+
+Return your review in this exact structure:
+
+FEATURE REVIEW
+--------------
+F-001: [PASS | FAIL | WARN]
+  Issues: <list specific problems, or "None">
+
+F-002: [PASS | FAIL | WARN]
+  Issues: <list specific problems, or "None">
+
+(repeat for every feature)
+
+MISSED FEATURES
+---------------
+<List any features present in the spec but missing from the feature
+list. If none, write "None identified.">
+
+HALLUCINATED FEATURES
+---------------------
+<List any features in the feature list that cannot be traced to the
+spec. If none, write "None identified.">
+
+AMBIGUITIES REQUIRING ARCHITECT SIGN-OFF
+-----------------------------------------
+<List every ambiguity that must be resolved before Step 2 begins.
+Format: [Feature_ID] — <ambiguity description> — <question to ask>
+If none, write "None.">
+
+OVERALL VERDICT
+---------------
+READY FOR STEP 2   — all features PASS, no architect sign-off needed
+NEEDS FIXES        — fix the listed issues, then re-run Step 1b
+BLOCKED            — architect sign-off required before proceeding
+
+====================================================
+RULES
+====================================================
+
+- Do NOT add features not in the spec
+- Do NOT resolve ambiguities — flag them only
+- Do NOT rewrite descriptions — flag them as incorrect if wrong
+- Be specific: "Description infers behavior not stated in spec" is
+  useful. "Description could be better" is not.
+- A WARN means the feature is usable but has a minor issue
+- A FAIL means the feature must be corrected before Step 2
+
+====================================================
+INPUTS — paste both below
+====================================================
+
+FEATURE LIST FROM STEP 1:
+<<< PASTE STEP 1 OUTPUT HERE >>>
+
+
+ORIGINAL SPECIFICATION:
+<<< PASTE YOUR SPECIFICATION TEXT HERE >>>
