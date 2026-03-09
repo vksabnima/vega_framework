@@ -7,6 +7,7 @@
 // Interfaces
 ahb_mst_if.sv
 apb_slv_if.sv
+reset_ctrl_if.sv
 
 // Package
 ahb2apb_bridge_pkg.sv

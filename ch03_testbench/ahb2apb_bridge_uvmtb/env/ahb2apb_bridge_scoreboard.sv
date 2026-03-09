@@ -52,6 +52,11 @@ class ahb2apb_bridge_scoreboard extends uvm_scoreboard;
   // Enable flag — disabled for bringup test
   bit enable = 1;
 
+  // Filtering flags — set by tests that use register access or error scenarios
+  // When set, these AHB transactions are NOT pushed to the queue (avoids VG6 mismatch)
+  bit skip_register_range = 0;  // Skip HADDR in 0x0F00-0x0F0F
+  bit skip_error_txns     = 0;  // Skip transactions with HRESP=1
+
   function new(string name, uvm_component parent);
     super.new(name, parent);
     ahb_txn_count = 0;
@@ -79,6 +84,20 @@ class ahb2apb_bridge_scoreboard extends uvm_scoreboard;
   // =========================================================================
   virtual function void write_ahb(ahb_mst_seq_item txn);
     if (!enable) return;
+
+    // Filter register-range transactions (no APB counterpart)
+    if (skip_register_range &&
+        txn.HADDR >= 32'h0000_0F00 && txn.HADDR <= 32'h0000_0F0F) begin
+      `uvm_info("SCB", $sformatf("AHB txn SKIP (register range): %s", txn.convert2string()), UVM_HIGH)
+      return;
+    end
+
+    // Filter error transactions (address error / timeout — no APB completion)
+    if (skip_error_txns && txn.HRESP === 1'b1) begin
+      `uvm_info("SCB", $sformatf("AHB txn SKIP (error): %s", txn.convert2string()), UVM_HIGH)
+      return;
+    end
+
     ahb_q.push_back(txn);
     ahb_txn_count++;
     `uvm_info("SCB", $sformatf("AHB txn #%0d received: %s", ahb_txn_count, txn.convert2string()), UVM_MEDIUM)

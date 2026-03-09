@@ -20,6 +20,7 @@ class ahb2apb_bridge_env extends uvm_env;
   ahb_mst_agent            ahb_agt;
   apb_slv_agent            apb_agt;
   ahb2apb_bridge_scoreboard scb;
+  ahb2apb_bridge_coverage   cov;
 
   ahb2apb_bridge_dut_config cfg;
 
@@ -43,6 +44,9 @@ class ahb2apb_bridge_env extends uvm_env;
 
     // Instantiate scoreboard
     scb = ahb2apb_bridge_scoreboard::type_id::create("scb", this);
+
+    // Instantiate coverage collector
+    cov = ahb2apb_bridge_coverage::type_id::create("cov", this);
   endfunction
 
   virtual function void connect_phase(uvm_phase phase);
@@ -51,6 +55,10 @@ class ahb2apb_bridge_env extends uvm_env;
     // Connect monitor analysis ports to scoreboard
     ahb_agt.mon.ap.connect(scb.ahb_imp);
     apb_agt.mon.ap.connect(scb.apb_imp);
+
+    // Connect monitor analysis ports to coverage collector
+    ahb_agt.mon.ap.connect(cov.ahb_imp);
+    apb_agt.mon.ap.connect(cov.apb_imp);
   endfunction
 
 endclass

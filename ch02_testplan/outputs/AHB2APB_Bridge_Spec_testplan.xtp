@@ -7,7 +7,7 @@
 
   Source:       AHB2APB_Bridge_Spec
   Features:     15
-  Test Cases:   36
+  Test Cases:   47
   Categories:   8
   Generated:    2026-03-06 16:34:05
 -->
@@ -18,7 +18,7 @@
     <methodology>VEGA — Cognitive Verification Architecture</methodology>
     <author>Vikash Kumar</author>
     <total_features>15</total_features>
-    <total_tests>36</total_tests>
+    <total_tests>47</total_tests>
   </metadata>
 
   <features count="15">
@@ -28,6 +28,7 @@
       <requirements>
         <requirement text="AHB-2: HREADY_OUT shall be HIGH during IDLE state" page="page 9" test_ref="TEST_CONNECTIVITY_001"/>
         <requirement text="AHB-3: When HREADY_OUT is LOW, the master shall hold all control signals stable" page="page 9" test_ref="TEST_CONNECTIVITY_002"/>
+        <requirement text="AHB-6: For ERROR response, HRESP shall be HIGH for two cycles" page="page 9" test_ref="TEST_PROTOCOL_003"/>
       </requirements>
     </feature>
     <feature req_id="REQ_002" name="APB Master Interface" category="connectivity" pages="page 7-8">
@@ -36,6 +37,7 @@
       <requirements>
         <requirement text="APB-1: PSEL shall be asserted for the entire transfer (SETUP and ACCESS phases)" page="page 9" test_ref="TEST_CONNECTIVITY_003"/>
         <requirement text="APB-2: PENABLE shall be LOW during SETUP phase and HIGH during ACCESS phase" page="page 9" test_ref="TEST_CONNECTIVITY_004"/>
+        <requirement text="APB-3: PADDR, PWRITE, and PWDATA shall be stable for entire transfer" page="page 9" test_ref="TEST_PROTOCOL_004"/>
       </requirements>
     </feature>
     <feature req_id="REQ_003" name="Single Transfer Conversion" category="main_datapath" pages="page 9, 12-13">
@@ -46,6 +48,8 @@
         <requirement text="CONV-5: PADDR shall equal the captured AHB address" page="page 9" test_ref="TEST_MAIN_DATAPATH_002"/>
         <requirement text="CONV-7: PWDATA shall equal HWDATA (directly forwarded)" page="page 9" test_ref="TEST_MAIN_DATAPATH_003"/>
         <requirement text="CONV-8: HRDATA shall equal PRDATA (directly forwarded)" page="page 9" test_ref="TEST_MAIN_DATAPATH_004"/>
+        <requirement text="CONV-2: AHB address captured when HSEL, HREADY_IN, and HTRANS[1] are HIGH" page="page 9" test_ref="TEST_MAIN_DATAPATH_008"/>
+        <requirement text="CONV-6: PWRITE shall equal the captured HWRITE" page="page 9" test_ref="TEST_MAIN_DATAPATH_009"/>
       </requirements>
     </feature>
     <feature req_id="REQ_004" name="Burst Transfer Conversion" category="main_datapath" pages="page 9-11, 13-14">
@@ -55,6 +59,8 @@
         <requirement text="BURST-1: Bursts shall be converted to sequential APB transfers (one per beat)" page="page 9" test_ref="TEST_MAIN_DATAPATH_005"/>
         <requirement text="BURST-3: For INCR bursts, address shall increment by transfer size each beat" page="page 9" test_ref="TEST_MAIN_DATAPATH_006"/>
         <requirement text="BURST-4: For WRAP bursts, address shall wrap at the calculated boundary" page="page 9" test_ref="TEST_MAIN_DATAPATH_007"/>
+        <requirement text="BURST-5: Burst shall terminate on HTRANS=IDLE or HTRANS=NONSEQ (new burst)" page="page 9" test_ref="TEST_MAIN_DATAPATH_010"/>
+        <requirement text="BURST-6: Bridge shall not initiate bursts that cross 1KB boundary" page="page 9" test_ref="TEST_MAIN_DATAPATH_011"/>
       </requirements>
     </feature>
     <feature req_id="REQ_005" name="Wait State Handling" category="protocol" pages="page 10, 14">
@@ -101,6 +107,7 @@
       <requirements>
         <requirement text="AERR-1: Address error occurs when HADDR is outside valid APB address range" page="page 11" test_ref="TEST_ERROR_001"/>
         <requirement text="AERR-3: On address error, bridge shall NOT initiate APB transfer" page="page 11" test_ref="TEST_ERROR_002"/>
+        <requirement text="ERCV-5: Bridge accepts new transfer immediately after error completion" page="page 12" test_ref="TEST_ERROR_008"/>
       </requirements>
     </feature>
     <feature req_id="REQ_011" name="Timeout Error Detection" category="error" pages="page 11-12">
@@ -110,6 +117,7 @@
         <requirement text="TERR-1: Timeout error occurs when APB slave holds PREADY=0 too long" page="page 11" test_ref="TEST_ERROR_003"/>
         <requirement text="TERR-2: Timeout detection requires CTRL.TIMEOUT_EN = 1" page="page 11" test_ref="TEST_ERROR_004"/>
         <requirement text="TERR-3: Timeout value = 2^(CTRL.TIMEOUT_VAL+4) clock cycles" page="page 11" test_ref="TEST_ERROR_005"/>
+        <requirement text="TERR-4: On timeout, bridge shall abort APB transfer (PSEL=0, PENABLE=0)" page="page 11" test_ref="TEST_ERROR_012"/>
       </requirements>
     </feature>
     <feature req_id="REQ_012" name="Protocol Error Detection" category="error" pages="page 12">
@@ -118,6 +126,9 @@
       <requirements>
         <requirement text="PERR-1: Protocol error occurs when APB slave asserts PSLVERR=1" page="page 12" test_ref="TEST_ERROR_006"/>
         <requirement text="PERR-2: PSLVERR is sampled when PENABLE=1 and PREADY=1" page="page 12" test_ref="TEST_ERROR_007"/>
+        <requirement text="PERR-7: For bursts, error terminates remaining beats" page="page 12" test_ref="TEST_ERROR_011"/>
+        <requirement text="ERPT-4: If CTRL.ERR_INT_EN=1, STATUS.ERR_INT shall be set on any error" page="page 12" test_ref="TEST_ERROR_009"/>
+        <requirement text="ERPT-6: Multiple errors: only first error captured until cleared" page="page 12" test_ref="TEST_ERROR_010"/>
       </requirements>
     </feature>
     <feature req_id="REQ_013" name="Soft Reset" category="reset" pages="page 11">
@@ -413,8 +424,8 @@
         </preconditions>
         <steps>
           <step num="1">
-            <action>Configure reasonable timeout: TIMEOUT_VAL=3'b010 (64 cycles)</action>
-            <expected>Timeout set to 64 cycles</expected>
+            <action>Configure timeout: write 0x0000_0091 to CTRL (TIMEOUT_EN=1, TIMEOUT_VAL=3'b001, 32 cycles, ENABLE=1)</action>
+            <expected>Timeout set to 32 cycles</expected>
           </step>
           <step num="2">
             <action>Start INCR4 burst: HADDR=0x7000, data pattern 0xAAAA_0000 + beat</action>
@@ -437,21 +448,21 @@
             <expected>0x7000→0xAAAA_0000, 0x7004→0xAAAA_0001, etc.</expected>
           </step>
           <step num="7">
-            <action>Test timeout boundary: single transfer with 65 wait states</action>
-            <expected>Timeout error occurs (exceeds 64-cycle limit)</expected>
+            <action>Test timeout boundary: single transfer with 33 wait states</action>
+            <expected>Timeout error occurs (exceeds 32-cycle limit)</expected>
           </step>
         </steps>
         <pass_criteria>Burst completes with wait states under timeout limit, timeout works when exceeded</pass_criteria>
       </test_case>
     </test_suite>
-    <test_suite name="error_tests" category="error" count="7">
+    <test_suite name="error_tests" category="error" count="12">
       <test_case test_id="TEST_ERROR_001" name="address_error_detection">
         <req_ref>REQ_010</req_ref>
         <objective>Verify bridge detects invalid address ranges and generates address error</objective>
         <preconditions>
           <condition>HCLK running at 100MHz</condition>
           <condition>HRESETn deasserted</condition>
-          <condition>Bridge configured with address range 0x0000_0000 to 0x0000_FFFF</condition>
+          <condition>Bridge address range fixed at 0x0000_0000 to 0x0000_FFFF (not configurable, AERR-2 default)</condition>
         </preconditions>
         <steps>
           <step num="1">
@@ -813,8 +824,228 @@
         </steps>
         <pass_criteria>PSLVERR only causes error when PENABLE=1 AND PREADY=1</pass_criteria>
       </test_case>
+      <test_case test_id="TEST_ERROR_008" name="error_recovery_back_to_back">
+        <req_ref>REQ_010</req_ref>
+        <objective>Verify bridge accepts new valid transfer immediately after error completion (ERCV-5)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge operational</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Generate address error: HTRANS=2'b10, HADDR=0x0010_0000, HWRITE=1</action>
+            <expected>Address error detected, HRESP=1</expected>
+          </step>
+          <step num="2">
+            <action>On the very next cycle after error response completes, drive valid transfer: HTRANS=2'b10, HADDR=0x0000_1000, HWRITE=1, HWDATA=0xBACK_2BAC</action>
+            <expected>Bridge accepts new transfer immediately — no idle gap required</expected>
+          </step>
+          <step num="3">
+            <action>Complete valid transfer with PREADY=1</action>
+            <expected>Transfer succeeds, HRESP=0, data written to 0x1000</expected>
+          </step>
+          <step num="4">
+            <action>Read back from 0x1000</action>
+            <expected>HRDATA=0xBACK_2BAC, confirming valid transfer completed correctly</expected>
+          </step>
+          <step num="5">
+            <action>Generate timeout error, immediately follow with valid transfer on next cycle</action>
+            <expected>Valid transfer succeeds immediately after timeout error</expected>
+          </step>
+          <step num="6">
+            <action>Generate PSLVERR error, immediately follow with valid transfer on next cycle</action>
+            <expected>Valid transfer succeeds immediately after protocol error</expected>
+          </step>
+        </steps>
+        <pass_criteria>Bridge recovers from all error types and accepts new transfer on the immediately following cycle</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_ERROR_009" name="error_interrupt_enable">
+        <req_ref>REQ_012</req_ref>
+        <objective>Verify ERR_INT_EN in CTRL enables STATUS.ERR_INT on any error (ERPT-4)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge operational</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Disable error interrupt: write 0x0000_0071 to CTRL (ERR_INT_EN=0)</action>
+            <expected>CTRL.ERR_INT_EN=0, error interrupts disabled</expected>
+          </step>
+          <step num="2">
+            <action>Generate address error: HADDR=0x0010_0000</action>
+            <expected>Address error occurs, STATUS.ADDR_ERR=1</expected>
+          </step>
+          <step num="3">
+            <action>Read STATUS register</action>
+            <expected>STATUS.ADDR_ERR=1, STATUS.ERR_INT=0 (interrupt NOT set because ERR_INT_EN=0)</expected>
+          </step>
+          <step num="4">
+            <action>Clear error: write W1C to STATUS</action>
+            <expected>STATUS error bits cleared</expected>
+          </step>
+          <step num="5">
+            <action>Enable error interrupt: write 0x0000_0079 to CTRL (ERR_INT_EN=1, ENABLE=1)</action>
+            <expected>CTRL.ERR_INT_EN=1, error interrupts enabled</expected>
+          </step>
+          <step num="6">
+            <action>Generate address error again: HADDR=0x0010_0000</action>
+            <expected>Address error occurs</expected>
+          </step>
+          <step num="7">
+            <action>Read STATUS register</action>
+            <expected>STATUS.ADDR_ERR=1 AND STATUS.ERR_INT=1 (bit 7 set because ERR_INT_EN=1)</expected>
+          </step>
+          <step num="8">
+            <action>Clear ERR_INT: write 0x0000_0080 to STATUS</action>
+            <expected>STATUS.ERR_INT=0, interrupt cleared</expected>
+          </step>
+          <step num="9">
+            <action>Generate timeout error with ERR_INT_EN=1</action>
+            <expected>STATUS.TIMEOUT_ERR=1 AND STATUS.ERR_INT=1</expected>
+          </step>
+          <step num="10">
+            <action>Generate PSLVERR error with ERR_INT_EN=1</action>
+            <expected>STATUS.PSLVERR=1 AND STATUS.ERR_INT=1</expected>
+          </step>
+        </steps>
+        <pass_criteria>1. ERR_INT_EN=0: errors set error bits but NOT ERR_INT. 2. ERR_INT_EN=1: all error types set ERR_INT. 3. ERR_INT clearable via W1C.</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_ERROR_010" name="multiple_errors_first_captured">
+        <req_ref>REQ_012</req_ref>
+        <objective>Verify only first error is captured in ERROR_ADDR/ERROR_INFO until cleared (ERPT-6)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge operational</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Generate first error: address error at 0x0010_0000 (write, word)</action>
+            <expected>First error captured: ERROR_ADDR=0x0010_0000, ERR_TYPE=1</expected>
+          </step>
+          <step num="2">
+            <action>Read ERROR_ADDR and ERROR_INFO after first error</action>
+            <expected>ERROR_ADDR=0x0010_0000, ERROR_INFO.ERR_TYPE=4'h1, ERR_WRITE=1</expected>
+          </step>
+          <step num="3">
+            <action>Generate second error WITHOUT clearing first: address error at 0x0020_0000 (read)</action>
+            <expected>Second error occurs but error registers should NOT update</expected>
+          </step>
+          <step num="4">
+            <action>Read ERROR_ADDR and ERROR_INFO after second error</action>
+            <expected>ERROR_ADDR still 0x0010_0000, ERROR_INFO still shows first error — second error NOT captured</expected>
+          </step>
+          <step num="5">
+            <action>Verify STATUS has both errors flagged</action>
+            <expected>STATUS.ADDR_ERR=1 (both errors set this bit, W1C sticky)</expected>
+          </step>
+          <step num="6">
+            <action>Clear error: write W1C to STATUS, clearing ADDR_ERR</action>
+            <expected>STATUS.ADDR_ERR=0, error cleared</expected>
+          </step>
+          <step num="7">
+            <action>Generate third error: address error at 0x0030_0000</action>
+            <expected>Error registers now update with new error (first was cleared)</expected>
+          </step>
+          <step num="8">
+            <action>Read ERROR_ADDR after clearing and new error</action>
+            <expected>ERROR_ADDR=0x0030_0000, new error captured after clear</expected>
+          </step>
+        </steps>
+        <pass_criteria>1. First error captured in ERROR_ADDR/ERROR_INFO. 2. Subsequent errors do NOT overwrite until cleared. 3. After clear, new errors captured.</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_ERROR_011" name="burst_terminated_on_protocol_error">
+        <req_ref>REQ_012</req_ref>
+        <objective>Verify PSLVERR during burst terminates remaining beats (PERR-7)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge operational</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Start INCR4 burst: HTRANS=2'b10, HBURST=3'b011, HADDR=0x0000_8000, HWRITE=1</action>
+            <expected>INCR4 burst initiated</expected>
+          </step>
+          <step num="2">
+            <action>Complete first beat: HWDATA=0x1111_1111, PSLVERR=0, PREADY=1</action>
+            <expected>First APB transfer completes successfully at 0x8000</expected>
+          </step>
+          <step num="3">
+            <action>Second beat: HWDATA=0x2222_2222, drive PSLVERR=1 and PREADY=1</action>
+            <expected>Protocol error detected on second beat</expected>
+          </step>
+          <step num="4">
+            <action>Sample HRESP during error response</action>
+            <expected>HRESP=1 (ERROR), error propagated to AHB</expected>
+          </step>
+          <step num="5">
+            <action>Monitor for beats 3 and 4: check if APB transfers initiated</action>
+            <expected>No further APB transfers — PSEL=0, PENABLE=0, burst terminated</expected>
+          </step>
+          <step num="6">
+            <action>Read ERROR_ADDR and ERROR_INFO</action>
+            <expected>ERROR_ADDR=0x0000_8004, ERR_TYPE=4'h3 (protocol), ERR_BEAT captures beat number</expected>
+          </step>
+          <step num="7">
+            <action>Verify beat 1 data preserved: read from 0x8000</action>
+            <expected>HRDATA=0x1111_1111 (completed before error)</expected>
+          </step>
+          <step num="8">
+            <action>Test recovery: new transfer to 0x9000</action>
+            <expected>Transfer succeeds, bridge recovered from burst termination</expected>
+          </step>
+        </steps>
+        <pass_criteria>1. PSLVERR on any beat terminates remaining burst. 2. Completed beats preserved. 3. Error registers capture correct beat. 4. Bridge recovers.</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_ERROR_012" name="apb_deassert_after_timeout">
+        <req_ref>REQ_011</req_ref>
+        <objective>Verify APB signals are deasserted (PSEL=0, PENABLE=0) after timeout error (TERR-4)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>TIMEOUT_EN=1, TIMEOUT_VAL=000 (16-cycle timeout)</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Configure timeout: write 0x0000_0081 to CTRL</action>
+            <expected>16-cycle timeout enabled</expected>
+          </step>
+          <step num="2">
+            <action>Initiate transfer: HADDR=0x0000_4000, HWRITE=1</action>
+            <expected>Transfer begins, APB SETUP then ACCESS</expected>
+          </step>
+          <step num="3">
+            <action>During ACCESS phase, verify PSEL=1 and PENABLE=1</action>
+            <expected>APB transfer active: PSEL=1, PENABLE=1</expected>
+          </step>
+          <step num="4">
+            <action>Hold PREADY=0 for 16+ cycles to trigger timeout</action>
+            <expected>Timeout counter expires, timeout error detected</expected>
+          </step>
+          <step num="5">
+            <action>Immediately after timeout, sample PSEL and PENABLE</action>
+            <expected>PSEL=0, PENABLE=0 — APB transfer aborted per TERR-4</expected>
+          </step>
+          <step num="6">
+            <action>Verify HRESP=1 on AHB side</action>
+            <expected>HRESP=1 (ERROR) for timeout</expected>
+          </step>
+          <step num="7">
+            <action>Read STATUS register</action>
+            <expected>STATUS.TIMEOUT_ERR=1</expected>
+          </step>
+          <step num="8">
+            <action>Verify bridge returns to IDLE and accepts new transfer</action>
+            <expected>New transfer to 0x5000 succeeds, PSEL/PENABLE cycle correctly</expected>
+          </step>
+        </steps>
+        <pass_criteria>1. PSEL and PENABLE deasserted immediately on timeout. 2. APB transfer cleanly aborted. 3. Bridge recovers for new transfers.</pass_criteria>
+      </test_case>
     </test_suite>
-    <test_suite name="main_datapath_tests" category="main_datapath" count="7">
+    <test_suite name="main_datapath_tests" category="main_datapath" count="11">
       <test_case test_id="TEST_MAIN_DATAPATH_001" name="single_write_conversion">
         <req_ref>REQ_003</req_ref>
         <objective>Verify single AHB write converts to single APB write</objective>
@@ -1067,8 +1298,156 @@
         </steps>
         <pass_criteria>WRAP4 addresses follow wrap boundary: 0x100E→0x1010→0x1014→0x1018 for 16-byte boundary</pass_criteria>
       </test_case>
+      <test_case test_id="TEST_MAIN_DATAPATH_008" name="transfer_gating_negative">
+        <req_ref>REQ_003</req_ref>
+        <objective>Verify bridge ignores transfers when HSEL=0, HREADY_IN=0, or HTRANS=IDLE/BUSY (CONV-2)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge in IDLE state</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Drive HTRANS=2'b10, HADDR=0x0000_1000, HWRITE=1, HSEL=0, HREADY_IN=1</action>
+            <expected>Bridge ignores transfer — HSEL=0 means bridge not selected</expected>
+          </step>
+          <step num="2">
+            <action>Monitor APB signals for 5 cycles</action>
+            <expected>PSEL=0, PENABLE=0, no APB transfer initiated</expected>
+          </step>
+          <step num="3">
+            <action>Drive HTRANS=2'b10, HADDR=0x0000_1000, HWRITE=1, HSEL=1, HREADY_IN=0</action>
+            <expected>Bridge ignores transfer — HREADY_IN=0 means previous transfer not complete</expected>
+          </step>
+          <step num="4">
+            <action>Monitor APB signals for 5 cycles</action>
+            <expected>PSEL=0, PENABLE=0, no APB transfer initiated</expected>
+          </step>
+          <step num="5">
+            <action>Drive HTRANS=2'b00 (IDLE), HADDR=0x0000_1000, HWRITE=1, HSEL=1, HREADY_IN=1</action>
+            <expected>Bridge ignores — HTRANS=IDLE means no transfer requested</expected>
+          </step>
+          <step num="6">
+            <action>Drive HTRANS=2'b01 (BUSY), HADDR=0x0000_1000, HWRITE=1, HSEL=1, HREADY_IN=1</action>
+            <expected>Bridge ignores — HTRANS=BUSY is a wait cycle, no new transfer</expected>
+          </step>
+          <step num="7">
+            <action>Verify bridge still works: HTRANS=2'b10, HSEL=1, HREADY_IN=1, HADDR=0x1000, write 0xDEAD_BEEF</action>
+            <expected>Transfer succeeds, proving bridge is functional after ignoring invalid requests</expected>
+          </step>
+        </steps>
+        <pass_criteria>Bridge only captures transfer when HSEL=1 AND HREADY_IN=1 AND HTRANS[1]=1</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_MAIN_DATAPATH_009" name="direction_forwarding">
+        <req_ref>REQ_003</req_ref>
+        <objective>Verify PWRITE equals captured HWRITE for both write and read transfers (CONV-6)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge in IDLE state</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Initiate write: HTRANS=2'b10, HADDR=0x0000_4000, HWRITE=1</action>
+            <expected>Write transfer captured</expected>
+          </step>
+          <step num="2">
+            <action>During APB SETUP/ACCESS, sample PWRITE</action>
+            <expected>PWRITE=1, matching HWRITE=1 (write direction forwarded)</expected>
+          </step>
+          <step num="3">
+            <action>Complete write, initiate read: HTRANS=2'b10, HADDR=0x0000_4000, HWRITE=0</action>
+            <expected>Read transfer captured</expected>
+          </step>
+          <step num="4">
+            <action>During APB SETUP/ACCESS, sample PWRITE</action>
+            <expected>PWRITE=0, matching HWRITE=0 (read direction forwarded)</expected>
+          </step>
+          <step num="5">
+            <action>Alternate write/read 5 times, check PWRITE matches HWRITE each time</action>
+            <expected>PWRITE always equals captured HWRITE for every transfer</expected>
+          </step>
+        </steps>
+        <pass_criteria>PWRITE exactly equals HWRITE for every transfer — write maps to write, read maps to read</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_MAIN_DATAPATH_010" name="burst_early_termination">
+        <req_ref>REQ_004</req_ref>
+        <objective>Verify burst terminates early on HTRANS=IDLE or HTRANS=NONSEQ (BURST-5)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge in IDLE state</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Start INCR4 burst: HTRANS=2'b10 (NONSEQ), HBURST=3'b011, HADDR=0x0000_5000, HWRITE=1</action>
+            <expected>First beat of INCR4 burst initiated</expected>
+          </step>
+          <step num="2">
+            <action>Complete first beat with HWDATA=0x1111_1111</action>
+            <expected>First APB transfer completes at 0x5000</expected>
+          </step>
+          <step num="3">
+            <action>Drive HTRANS=2'b00 (IDLE) instead of SEQ for second beat</action>
+            <expected>Burst terminated early — bridge detects IDLE and stops burst</expected>
+          </step>
+          <step num="4">
+            <action>Verify bridge returns to IDLE, no further APB transfers</action>
+            <expected>PSEL=0, PENABLE=0, bridge idle</expected>
+          </step>
+          <step num="5">
+            <action>Start new INCR4 burst: HADDR=0x0000_6000</action>
+            <expected>New burst initiated</expected>
+          </step>
+          <step num="6">
+            <action>Complete 2 beats, then drive HTRANS=2'b10 (NONSEQ) with new HADDR=0x0000_7000</action>
+            <expected>Current burst terminated, new single/burst transfer begins at 0x7000</expected>
+          </step>
+          <step num="7">
+            <action>Complete new transfer and verify data at 0x7000</action>
+            <expected>New transfer succeeds, old burst cleanly terminated</expected>
+          </step>
+        </steps>
+        <pass_criteria>1. HTRANS=IDLE terminates burst. 2. HTRANS=NONSEQ starts new transfer and terminates old burst. 3. No residual state from aborted burst.</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_MAIN_DATAPATH_011" name="burst_1kb_boundary_no_cross">
+        <req_ref>REQ_004</req_ref>
+        <objective>Verify bridge handles bursts near 1KB boundary correctly (BURST-6)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge in IDLE state</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Start INCR4 burst at HADDR=0x0000_03F0 (16 bytes before 1KB boundary at 0x400)</action>
+            <expected>Burst starts near 1KB boundary</expected>
+          </step>
+          <step num="2">
+            <action>Complete 4 beats: 0x03F0, 0x03F4, 0x03F8, 0x03FC</action>
+            <expected>All 4 beats stay within 1KB boundary — burst completes normally</expected>
+          </step>
+          <step num="3">
+            <action>Start INCR4 burst at HADDR=0x0000_03F4 (would cross 1KB at beat 4: 0x400)</action>
+            <expected>Burst may cross 1KB boundary at 4th beat</expected>
+          </step>
+          <step num="4">
+            <action>Monitor addresses: 0x03F4, 0x03F8, 0x03FC, 0x0400</action>
+            <expected>Bridge should handle or prevent 1KB crossing per design policy</expected>
+          </step>
+          <step num="5">
+            <action>Verify bridge state after boundary-crossing attempt</action>
+            <expected>Bridge either wraps address, terminates burst, or handles gracefully — no hang or corruption</expected>
+          </step>
+          <step num="6">
+            <action>Test WRAP4 at boundary: HADDR=0x0000_03FC with HSIZE=Word</action>
+            <expected>WRAP4 wraps within 16-byte boundary (0x03FC, 0x03F0, 0x03F4, 0x03F8), never crosses 1KB</expected>
+          </step>
+        </steps>
+        <pass_criteria>1. Bursts within 1KB complete normally. 2. Potential 1KB-crossing handled gracefully. 3. WRAP bursts naturally avoid crossing.</pass_criteria>
+      </test_case>
     </test_suite>
-    <test_suite name="protocol_tests" category="protocol" count="2">
+    <test_suite name="protocol_tests" category="protocol" count="4">
       <test_case test_id="TEST_PROTOCOL_001" name="apb_wait_state_propagation">
         <req_ref>REQ_005</req_ref>
         <objective>Verify APB PREADY=0 causes AHB HREADY_OUT=0</objective>
@@ -1137,6 +1516,86 @@
         </steps>
         <pass_criteria>APB transfer completes in exactly 2 cycles with PREADY=1 throughout</pass_criteria>
       </test_case>
+      <test_case test_id="TEST_PROTOCOL_003" name="ahb_two_cycle_error_response">
+        <req_ref>REQ_001</req_ref>
+        <objective>Verify HRESP is held HIGH for exactly two cycles on error response (AHB-6)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge operational</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Generate address error: HTRANS=2'b10, HADDR=0x0010_0000, HWRITE=1</action>
+            <expected>Invalid address detected, error response begins</expected>
+          </step>
+          <step num="2">
+            <action>Sample HRESP at first error cycle (T1)</action>
+            <expected>HRESP=1 (ERROR), HREADY_OUT=0 (first cycle of two-cycle error)</expected>
+          </step>
+          <step num="3">
+            <action>Sample HRESP at second error cycle (T2)</action>
+            <expected>HRESP=1 (ERROR), HREADY_OUT=1 (second cycle, transfer completes)</expected>
+          </step>
+          <step num="4">
+            <action>Sample HRESP at T3 (cycle after error completes)</action>
+            <expected>HRESP=0 (OKAY), bridge returned to normal</expected>
+          </step>
+          <step num="5">
+            <action>Generate timeout error: TIMEOUT_EN=1, PREADY=0 beyond timeout</action>
+            <expected>Timeout error triggers</expected>
+          </step>
+          <step num="6">
+            <action>Sample HRESP for exactly 2 cycles during timeout error response</action>
+            <expected>HRESP=1 for exactly 2 cycles, then HRESP=0</expected>
+          </step>
+          <step num="7">
+            <action>Generate protocol error: PSLVERR=1 during valid transfer</action>
+            <expected>Protocol error triggers</expected>
+          </step>
+          <step num="8">
+            <action>Sample HRESP for exactly 2 cycles during PSLVERR error response</action>
+            <expected>HRESP=1 for exactly 2 cycles, then HRESP=0</expected>
+          </step>
+        </steps>
+        <pass_criteria>All three error types (address, timeout, protocol) produce exactly 2-cycle HRESP=ERROR response per AHB-6</pass_criteria>
+      </test_case>
+      <test_case test_id="TEST_PROTOCOL_004" name="apb_signal_stability_during_transfer">
+        <req_ref>REQ_002</req_ref>
+        <objective>Verify PADDR, PWRITE, and PWDATA remain stable for entire APB transfer (APB-3)</objective>
+        <preconditions>
+          <condition>HCLK running at 100MHz</condition>
+          <condition>HRESETn deasserted</condition>
+          <condition>Bridge operational</condition>
+        </preconditions>
+        <steps>
+          <step num="1">
+            <action>Initiate write: HTRANS=2'b10, HADDR=0x0000_2000, HWRITE=1, HWDATA=0xA5A5_5A5A</action>
+            <expected>Transfer initiated</expected>
+          </step>
+          <step num="2">
+            <action>During SETUP phase (PSEL=1, PENABLE=0), sample PADDR, PWRITE, PWDATA</action>
+            <expected>PADDR=0x0000_2000, PWRITE=1, PWDATA=0xA5A5_5A5A</expected>
+          </step>
+          <step num="3">
+            <action>Drive PREADY=0 to insert 3 wait states in ACCESS phase</action>
+            <expected>Transfer held in ACCESS phase</expected>
+          </step>
+          <step num="4">
+            <action>Sample PADDR, PWRITE, PWDATA on each wait state cycle</action>
+            <expected>PADDR=0x0000_2000, PWRITE=1, PWDATA=0xA5A5_5A5A — all stable across all wait cycles</expected>
+          </step>
+          <step num="5">
+            <action>Drive PREADY=1, transfer completes</action>
+            <expected>PADDR, PWRITE, PWDATA still stable at completion</expected>
+          </step>
+          <step num="6">
+            <action>Repeat with read transfer: HADDR=0x0000_3000, HWRITE=0, 2 wait states</action>
+            <expected>PADDR=0x0000_3000, PWRITE=0 stable throughout SETUP and ACCESS phases</expected>
+          </step>
+        </steps>
+        <pass_criteria>PADDR, PWRITE, PWDATA remain stable from SETUP through ACCESS phase completion, including wait states</pass_criteria>
+      </test_case>
     </test_suite>
     <test_suite name="register_access_tests" category="register_access" count="6">
       <test_case test_id="TEST_REGISTER_ACCESS_001" name="ctrl_register_access">
@@ -1154,11 +1613,11 @@
           </step>
           <step num="2">
             <action>Sample HRDATA when HREADY_OUT=1</action>
-            <expected>HRDATA=0x0000_0001 (reset value: ENABLE=1)</expected>
+            <expected>HRDATA=0x0000_0071 (reset value: TIMEOUT_VAL=111, ENABLE=1)</expected>
           </step>
           <step num="3">
             <action>Write CTRL register: HADDR=0x0000_0F00, HWRITE=1, HWDATA=0x0000_0089</action>
-            <expected>Write 0x89 to CTRL (TIMEOUT_EN=1, TIMEOUT_VAL=4, ENABLE=1)</expected>
+            <expected>Write 0x89 to CTRL (TIMEOUT_EN=1, TIMEOUT_VAL=000, ERR_INT_EN=1, ENABLE=1)</expected>
           </step>
           <step num="4">
             <action>Read back CTRL register</action>
@@ -1189,8 +1648,8 @@
             <expected>Transfer succeeds, bridge operational</expected>
           </step>
           <step num="2">
-            <action>Disable bridge: write 0x0000_0000 to CTRL (ENABLE=0)</action>
-            <expected>CTRL.ENABLE=0, bridge disabled</expected>
+            <action>Disable bridge: write 0x0000_0070 to CTRL (TIMEOUT_VAL=111, ENABLE=0)</action>
+            <expected>CTRL.ENABLE=0, bridge disabled, TIMEOUT_VAL preserved</expected>
           </step>
           <step num="3">
             <action>Attempt transfer to 0x1000 while disabled</action>
@@ -1383,27 +1842,31 @@
             <expected>Soft reset completes</expected>
           </step>
           <step num="6">
+            <action>Verify bridge ready after 2-cycle soft reset recovery (SRST-6): read STATUS</action>
+            <expected>STATUS.READY=1, confirming bridge ready exactly 2 cycles after soft reset</expected>
+          </step>
+          <step num="7">
             <action>Read CTRL register after soft reset</action>
             <expected>SOFT_RST bit self-cleared, other CTRL bits preserved</expected>
           </step>
-          <step num="7">
+          <step num="8">
             <action>Read STATUS register after soft reset</action>
             <expected>STATUS=0x0000_0001 (all error bits cleared, READY=1)</expected>
           </step>
-          <step num="8">
+          <step num="9">
             <action>Read ERROR_ADDR and ERROR_INFO</action>
             <expected>Error registers cleared to 0x0000_0000</expected>
           </step>
-          <step num="9">
+          <step num="10">
             <action>Reconfigure if needed, test functionality</action>
             <expected>Bridge ready for new transfers</expected>
           </step>
-          <step num="10">
+          <step num="11">
             <action>Verify operation: write 0xCAFE_BABE to 0x2000, read back</action>
             <expected>HRDATA=0xCAFE_BABE, proving soft reset successful and device operational</expected>
           </step>
         </steps>
-        <pass_criteria>1. SOFT_RST initiates reset. 2. STATUS errors cleared. 3. SOFT_RST self-clears. 4. CTRL preserved except SOFT_RST. 5. Device works after reset.</pass_criteria>
+        <pass_criteria>1. SOFT_RST initiates reset. 2. STATUS errors cleared. 3. SOFT_RST self-clears. 4. CTRL preserved except SOFT_RST. 5. 2-cycle recovery (SRST-6). 6. Device works after reset.</pass_criteria>
       </test_case>
       <test_case test_id="TEST_RESET_002" name="soft_reset_abort_transfer">
         <req_ref>REQ_013</req_ref>
@@ -1482,34 +1945,38 @@
             <expected>Reset asserted during active operation</expected>
           </step>
           <step num="5">
-            <action>Within 1 cycle, observe all outputs</action>
-            <expected>HREADY_OUT=1, HRESP=0, PSEL=0, PENABLE=0 (safe reset state)</expected>
+            <action>Within 1 cycle, verify active APB transfer is aborted: sample PSEL, PENABLE</action>
+            <expected>PSEL=0, PENABLE=0, confirming active APB transfer aborted by reset</expected>
           </step>
           <step num="6">
+            <action>Within 1 cycle, observe all AHB outputs</action>
+            <expected>HREADY_OUT=1, HRESP=0, PSEL=0, PENABLE=0 (safe reset state)</expected>
+          </step>
+          <step num="7">
             <action>Hold HRESETn=0 for 5 cycles</action>
             <expected>All outputs remain at reset values</expected>
           </step>
-          <step num="7">
+          <step num="8">
             <action>Deassert HRESETn=1 synchronously at clock edge</action>
             <expected>Reset released synchronously</expected>
           </step>
-          <step num="8">
+          <step num="9">
             <action>Wait 2 cycles after reset deassertion</action>
             <expected>Bridge initialization complete</expected>
           </step>
-          <step num="9">
-            <action>Read CTRL register</action>
-            <expected>CTRL=0x0000_0001 (reset value: ENABLE=1 only)</expected>
-          </step>
           <step num="10">
+            <action>Read CTRL register</action>
+            <expected>CTRL=0x0000_0071 (reset value: TIMEOUT_VAL=111, ENABLE=1)</expected>
+          </step>
+          <step num="11">
             <action>Read STATUS register</action>
             <expected>STATUS=0x0000_0001 (reset value: READY=1 only)</expected>
           </step>
-          <step num="11">
+          <step num="12">
             <action>Reconfigure bridge as needed</action>
             <expected>Configuration successful</expected>
           </step>
-          <step num="12">
+          <step num="13">
             <action>Test operation: write 0xCAFE_BABE to 0x3000, read back</action>
             <expected>HRDATA=0xCAFE_BABE, proving reset recovery and full operation</expected>
           </step>
@@ -1534,11 +2001,11 @@
           </step>
           <step num="3">
             <action>At T2 rising edge (1 cycle later), sample all outputs</action>
-            <expected>HREADY_OUT=1, HRESP=0, PSEL=0, PENABLE=0, PADDR=0, PWDATA=0</expected>
+            <expected>HREADY_OUT=1, HRESP=0, HRDATA=0, PSEL=0, PENABLE=0, PADDR=0, PWRITE=0, PWDATA=0</expected>
           </step>
           <step num="4">
-            <action>Verify reset state matches specification Table 12</action>
-            <expected>All signals at documented reset values</expected>
+            <action>Verify ALL register reset values per Table 12: read CTRL, STATUS, ERROR_ADDR, ERROR_INFO</action>
+            <expected>CTRL=0x0000_0071, STATUS=0x0000_0001, ERROR_ADDR=0x0000_0000, ERROR_INFO=0x0000_0000</expected>
           </step>
           <step num="5">
             <action>Continue monitoring for additional cycles</action>
@@ -1560,8 +2027,8 @@
             <expected>Reset deassertion at clock edge</expected>
           </step>
           <step num="2">
-            <action>At T2 (1 cycle after deassertion), attempt transfer</action>
-            <expected>Bridge may not be ready yet</expected>
+            <action>At T2 (1 cycle after deassertion), read STATUS register</action>
+            <expected>Bridge NOT ready — STATUS.READY=0, transfer must not be accepted (RST-4 requires 2 cycles)</expected>
           </step>
           <step num="3">
             <action>At T3 (2 cycles after deassertion), initiate transfer: HTRANS=2'b10, HADDR=0x1000</action>

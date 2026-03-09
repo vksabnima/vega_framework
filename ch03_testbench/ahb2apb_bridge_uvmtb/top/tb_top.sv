@@ -46,16 +46,18 @@ module tb_top;
   // Reset Generation
   //
   // HRESETn: active-low, asserted for 100ns per manifest.
-  // Per IP-XACT: "All outputs deasserted. HREADY_OUT driven high after
-  //   reset release."
-  // Per [U8]: only tb_top generates reset.
+  // Uses reset_ctrl_if to allow tests to toggle reset during simulation.
+  // HRESETn = HRESETn_init AND rst_if.reset_n
   // =========================================================================
-  logic HRESETn;
+  logic HRESETn_init;
   initial begin
-    HRESETn = 0;       // Assert reset at time 0
-    #100;              // Hold for 100ns per manifest
-    HRESETn = 1;       // Release reset
+    HRESETn_init = 0;       // Assert reset at time 0
+    #100;                   // Hold for 100ns per manifest
+    HRESETn_init = 1;       // Release reset
   end
+
+  reset_ctrl_if rst_if (.HCLK(HCLK));
+  wire HRESETn = HRESETn_init & rst_if.reset_n;
 
   // =========================================================================
   // Interface Instantiation
@@ -122,6 +124,13 @@ module tb_top;
 
     // Register APB slave interface — accessed by apb_slv driver and monitor
     uvm_config_db#(virtual apb_slv_if)::set(null, "uvm_test_top.env.apb_agt.*", "vif", apb_if);
+
+    // Register interfaces for coverage collector
+    uvm_config_db#(virtual ahb_mst_if)::set(null, "uvm_test_top.env.cov", "vif", ahb_if);
+    uvm_config_db#(virtual apb_slv_if)::set(null, "uvm_test_top.env.cov", "vif", apb_if);
+
+    // Register reset control interface — accessed by reset tests
+    uvm_config_db#(virtual reset_ctrl_if)::set(null, "*", "rst_vif", rst_if);
   end
 
   // =========================================================================
@@ -142,8 +151,8 @@ module tb_top;
   // EDIT_OPTIONAL: Increase if your DUT has long latencies.
   // =========================================================================
   initial begin
-    #10_000;
-    `uvm_fatal("TIMEOUT", "Simulation timed out after 10,000ns")
+    #500_000;
+    `uvm_fatal("TIMEOUT", "Simulation timed out after 500,000ns")
   end
 
 endmodule

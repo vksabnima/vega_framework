@@ -36,6 +36,16 @@ class apb_slv_driver extends uvm_driver #(apb_slv_seq_item);
   // Simple memory model — associative array keyed by word-aligned address
   bit [31:0] mem [bit[31:0]];
 
+  // ----- Configurable behavior knobs (set by tests) -----
+  // Wait state injection: number of extra cycles to hold PREADY=0
+  int pready_delay = 0;
+
+  // PSLVERR injection: inject on ALL subsequent transfers
+  bit pslverr_inject = 0;
+
+  // PSLVERR injection: inject on NEXT transfer only, auto-clears
+  bit pslverr_inject_once = 0;
+
   function new(string name, uvm_component parent);
     super.new(name, parent);
   endfunction
@@ -49,18 +59,17 @@ class apb_slv_driver extends uvm_driver #(apb_slv_seq_item);
   // =========================================================================
   // run_phase: reactive slave — observe and respond
   //
-  // Waits for PSEL=1 && PENABLE=0 (setup phase), then on next clock
-  // (access phase with PENABLE=1) drives PRDATA/PREADY/PSLVERR.
+  // Supports configurable wait states (pready_delay) and error injection
+  // (pslverr_inject / pslverr_inject_once).
   //
-  // Per intent: PREADY after one clock, no wait states, no errors.
-  //
-  // PROTOCOL_GAP: The exact behavior when bridge deasserts PSEL mid-transfer
-  //   is not tested in bringup.  The driver simply returns to idle.
+  // Tests set these fields before starting AHB sequences:
+  //   env.apb_agt.drv.pready_delay = N;
+  //   env.apb_agt.drv.pslverr_inject = 1;
   // =========================================================================
   virtual task run_phase(uvm_phase phase);
     // Initialize outputs to safe defaults
     vif.drv_cb.PRDATA  <= 32'h0;
-    vif.drv_cb.PREADY  <= 1'b1;  // Default ready (no wait states)
+    vif.drv_cb.PREADY  <= 1'b1;
     vif.drv_cb.PSLVERR <= 1'b0;
 
     forever begin
@@ -71,46 +80,78 @@ class apb_slv_driver extends uvm_driver #(apb_slv_seq_item);
         bit [31:0] addr;
         bit        wr;
         bit [31:0] wdata;
+        int        delay;
+        bit        inject_err;
 
         // Capture setup-phase information
         addr  = vif.drv_cb.PADDR;
         wr    = vif.drv_cb.PWRITE;
 
-        // ----- ACCESS phase: next clock, PENABLE should go high -----
-        // Drive PREADY=1 (no wait states per intent)
+        // Snapshot behavior for this transfer
+        delay      = pready_delay;
+        inject_err = pslverr_inject || pslverr_inject_once;
+        if (pslverr_inject_once) pslverr_inject_once = 0;
+
         // For reads: drive stored data
-        // For writes: data captured in access phase
         if (!wr) begin
-          // Read: return previously stored value, or 0 if never written
           if (mem.exists(addr))
             vif.drv_cb.PRDATA <= mem[addr];
           else
             vif.drv_cb.PRDATA <= 32'h0;
         end
 
-        vif.drv_cb.PREADY  <= 1'b1;
-        vif.drv_cb.PSLVERR <= 1'b0;
+        // During setup, pre-drive PREADY and PSLVERR so they are visible
+        // to RTL when it enters ST_APB_ACCESS at the next posedge.
+        // (output #1 clocking skew means values driven here are seen
+        //  by RTL one cycle later — exactly when ST_APB_ACCESS begins.)
+        if (delay > 0) begin
+          vif.drv_cb.PREADY  <= 1'b0;
+          vif.drv_cb.PSLVERR <= 1'b0;
+        end else begin
+          vif.drv_cb.PREADY  <= 1'b1;
+          vif.drv_cb.PSLVERR <= inject_err ? 1'b1 : 1'b0;
+        end
 
         // Wait for ACCESS phase
         @(vif.drv_cb);
 
-        // Verify PENABLE is now high (sanity check)
+        // Verify PENABLE is now high
         if (vif.drv_cb.PSEL === 1'b1 && vif.drv_cb.PENABLE === 1'b1) begin
-          if (wr) begin
-            // Write: capture PWDATA and store in memory
-            wdata = vif.drv_cb.PWDATA;
-            mem[addr] = wdata;
-            `uvm_info("APB_SLV_DRV", $sformatf("WRITE mem[0x%08h] = 0x%08h", addr, wdata), UVM_HIGH)
-          end else begin
-            `uvm_info("APB_SLV_DRV", $sformatf("READ  mem[0x%08h] = 0x%08h", addr,
-                      mem.exists(addr) ? mem[addr] : 32'h0), UVM_HIGH)
+
+          // Hold PREADY=0 for delay cycles (wait state injection)
+          if (delay > 0) begin : wait_state_loop
+            int i;
+            for (i = 0; i < delay; i++) begin
+              vif.drv_cb.PREADY  <= 1'b0;
+              vif.drv_cb.PSLVERR <= 1'b0;
+              @(vif.drv_cb);
+              // Break if bridge aborted (timeout, error)
+              if (vif.drv_cb.PSEL !== 1'b1) break;
+            end
           end
+
+          // Complete transfer: PREADY=1, optionally PSLVERR=1
+          vif.drv_cb.PREADY  <= 1'b1;
+          vif.drv_cb.PSLVERR <= inject_err ? 1'b1 : 1'b0;
+
+          if (wr) begin
+            wdata = vif.drv_cb.PWDATA;
+            if (!inject_err)
+              mem[addr] = wdata;
+            `uvm_info("APB_SLV_DRV", $sformatf("WRITE mem[0x%08h] = 0x%08h%s",
+                      addr, wdata, inject_err ? " [PSLVERR]" : ""), UVM_HIGH)
+          end else begin
+            `uvm_info("APB_SLV_DRV", $sformatf("READ  mem[0x%08h] = 0x%08h%s",
+                      addr, mem.exists(addr) ? mem[addr] : 32'h0,
+                      inject_err ? " [PSLVERR]" : ""), UVM_HIGH)
+          end
+
         end else begin
           `uvm_warning("APB_SLV_DRV", "Expected PENABLE=1 in access phase but not seen")
         end
 
-        // After transfer complete, deassert PRDATA (not required but clean)
-        // PREADY stays high as default
+        // After transfer, return PSLVERR to 0
+        vif.drv_cb.PSLVERR <= 1'b0;
       end
     end
   endtask

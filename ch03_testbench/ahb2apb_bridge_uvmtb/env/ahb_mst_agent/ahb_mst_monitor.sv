@@ -72,7 +72,11 @@ class ahb_mst_monitor extends uvm_monitor;
         txn.HSEL   = vif.mon_cb.HSEL;
 
         // ----- Wait for data phase completion -----
-        // Move to next clock edge (data phase begins)
+        // Clock 1: data phase begins on the bus.
+        // Clock 2: bridge NBA-updates state from IDLE → APB_SETUP,
+        //          but mon_cb #1step still sees old HREADY_OUT=1 (IDLE).
+        //          After this edge, #1step will see HREADY_OUT=0 (APB_SETUP).
+        @(vif.mon_cb);
         @(vif.mon_cb);
 
         // Wait until HREADY_OUT=1 (transfer complete)
@@ -86,8 +90,8 @@ class ahb_mst_monitor extends uvm_monitor;
         txn.HRESP      = vif.mon_cb.HRESP;
         txn.HREADY_OUT = vif.mon_cb.HREADY_OUT;
 
-        // Per [U4]: call post_randomize() after capturing all signals
-        txn.post_randomize();
+        // NOTE: Do NOT call post_randomize() here — it would overwrite
+        // captured bus values (HTRANS, HBURST) with defaults.
 
         `uvm_info("AHB_MON", $sformatf("Observed: %s", txn.convert2string()), UVM_MEDIUM)
 

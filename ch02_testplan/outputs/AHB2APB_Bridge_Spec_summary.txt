@@ -1,69 +1,107 @@
 ================================================================================================================================
   VEGA Test Plan — Management Summary
-  Source: AHB2APB_Bridge_Spec   |   Total tests: 36   |   Generated: 2026-03-06 16:34:05
+  Source: AHB2APB_Bridge_Spec   |   Total tests: 47   |   Updated: 2026-03-08
 ================================================================================================================================
-Sl.No |Test ID                   |Test Name                             |Objective / Description                                
+Sl.No |Test ID                   |Test Name                             |Objective / Description
 ======+==========================+======================================+=======================================================
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
   ▶  Connectivity
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
-1     |TEST_CONNECTIVITY_001     |ahb_idle_hready_high                  |Verify HREADY_OUT is HIGH when bridge is in IDLE state 
-2     |TEST_CONNECTIVITY_002     |ahb_wait_state_stability              |Verify control signals remain stable during wait st... 
-3     |TEST_CONNECTIVITY_003     |apb_psel_entire_transfer              |Verify PSEL remains HIGH for both SETUP and ACCESS ... 
-4     |TEST_CONNECTIVITY_004     |apb_penable_phases                    |Verify PENABLE transitions correctly between SETUP ... 
-------+--------------------------+--------------------------------------+-------------------------------------------------------
-  ▶  Reset
-------+--------------------------+--------------------------------------+-------------------------------------------------------
-5     |TEST_RESET_001            |soft_reset_initiation                 |Verify writing SOFT_RST bit initiates soft reset se... 
-6     |TEST_RESET_002            |soft_reset_abort_transfer             |Verify soft reset aborts active transfers cleanly      
-7     |TEST_RESET_003            |async_reset_assertion                 |Verify reset can be asserted asynchronously during ... 
-8     |TEST_RESET_004            |reset_safe_state_timing               |Verify all outputs reach safe state within 1 clock ... 
-9     |TEST_RESET_005            |reset_recovery_timing                 |Verify bridge ready exactly 2 cycles after reset de... 
-------+--------------------------+--------------------------------------+-------------------------------------------------------
-  ▶  Register Access
-------+--------------------------+--------------------------------------+-------------------------------------------------------
-10    |TEST_REGISTER_ACCESS_001  |ctrl_register_access                  |Verify CTRL register can be read and written at 0xF00  
-11    |TEST_REGISTER_ACCESS_002  |ctrl_enable_bit                       |Verify ENABLE bit controls bridge operation            
-12    |TEST_REGISTER_ACCESS_003  |status_register_access                |Verify STATUS register read access and write-1-to-c... 
-13    |TEST_REGISTER_ACCESS_004  |status_ready_bit                      |Verify READY bit reflects bridge transfer status       
-14    |TEST_REGISTER_ACCESS_005  |error_addr_capture                    |Verify ERROR_ADDR captures failing transfer address    
-15    |TEST_REGISTER_ACCESS_006  |error_info_capture                    |Verify ERROR_INFO captures comprehensive error details 
-------+--------------------------+--------------------------------------+-------------------------------------------------------
-  ▶  Main Datapath
-------+--------------------------+--------------------------------------+-------------------------------------------------------
-16    |TEST_MAIN_DATAPATH_001    |single_write_conversion               |Verify single AHB write converts to single APB write   
-17    |TEST_MAIN_DATAPATH_002    |address_forwarding                    |Verify AHB address is correctly forwarded to APB       
-18    |TEST_MAIN_DATAPATH_003    |write_data_forwarding                 |Verify AHB write data is directly forwarded to APB     
-19    |TEST_MAIN_DATAPATH_004    |read_data_forwarding                  |Verify APB read data is directly forwarded to AHB      
-20    |TEST_MAIN_DATAPATH_005    |incr4_burst_conversion                |Verify INCR4 burst converts to 4 sequential APB tra... 
-21    |TEST_MAIN_DATAPATH_006    |incr_address_increment                |Verify address increments by HSIZE for INCR bursts     
-22    |TEST_MAIN_DATAPATH_007    |wrap4_boundary_test                   |Verify WRAP4 burst wraps at 4×HSIZE boundary           
+1     |TEST_CONNECTIVITY_001     |ahb_idle_hready_high                  |Verify HREADY_OUT is HIGH when bridge is in IDLE state
+2     |TEST_CONNECTIVITY_002     |ahb_wait_state_stability              |Verify control signals remain stable during wait st...
+3     |TEST_CONNECTIVITY_003     |apb_psel_entire_transfer              |Verify PSEL remains HIGH for both SETUP and ACCESS ...
+4     |TEST_CONNECTIVITY_004     |apb_penable_phases                    |Verify PENABLE transitions correctly between SETUP ...
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
   ▶  Protocol
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
-23    |TEST_PROTOCOL_001         |apb_wait_state_propagation            |Verify APB PREADY=0 causes AHB HREADY_OUT=0            
-24    |TEST_PROTOCOL_002         |minimum_apb_transfer_cycles           |Verify APB transfer takes minimum 2 cycles even wit... 
+5     |TEST_PROTOCOL_001         |apb_wait_state_propagation            |Verify APB PREADY=0 causes AHB HREADY_OUT=0
+6     |TEST_PROTOCOL_002         |minimum_apb_transfer_cycles           |Verify APB transfer takes minimum 2 cycles even wit...
+7     |TEST_PROTOCOL_003         |ahb_two_cycle_error_response          |Verify HRESP held HIGH for exactly 2 cycles on error (AHB-6)
+8     |TEST_PROTOCOL_004         |apb_signal_stability_during_transfer  |Verify PADDR/PWRITE/PWDATA stable for entire transfer (APB-3)
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
-  ▶  Stress
+  ▶  Main Datapath
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
-25    |TEST_STRESS_001           |back_to_back_stress_test              |Verify bridge handles 1000+ back-to-back transfers ... 
+9     |TEST_MAIN_DATAPATH_001    |single_write_conversion               |Verify single AHB write converts to single APB write
+10    |TEST_MAIN_DATAPATH_002    |address_forwarding                    |Verify AHB address is correctly forwarded to APB
+11    |TEST_MAIN_DATAPATH_003    |write_data_forwarding                 |Verify AHB write data is directly forwarded to APB
+12    |TEST_MAIN_DATAPATH_004    |read_data_forwarding                  |Verify APB read data is directly forwarded to AHB
+13    |TEST_MAIN_DATAPATH_005    |incr4_burst_conversion                |Verify INCR4 burst converts to 4 sequential APB tra...
+14    |TEST_MAIN_DATAPATH_006    |incr_address_increment                |Verify address increments by HSIZE for INCR bursts
+15    |TEST_MAIN_DATAPATH_007    |wrap4_boundary_test                   |Verify WRAP4 burst wraps at 4×HSIZE boundary
+16    |TEST_MAIN_DATAPATH_008    |transfer_gating_negative              |Verify bridge ignores HSEL=0, HREADY_IN=0, HTRANS=IDLE/BUSY (CONV-2)
+17    |TEST_MAIN_DATAPATH_009    |direction_forwarding                  |Verify PWRITE equals captured HWRITE for write/read (CONV-6)
+18    |TEST_MAIN_DATAPATH_010    |burst_early_termination               |Verify burst terminates on HTRANS=IDLE or NONSEQ (BURST-5)
+19    |TEST_MAIN_DATAPATH_011    |burst_1kb_boundary_no_cross           |Verify bridge handles bursts near 1KB boundary (BURST-6)
+------+--------------------------+--------------------------------------+-------------------------------------------------------
+  ▶  Register Access
+------+--------------------------+--------------------------------------+-------------------------------------------------------
+20    |TEST_REGISTER_ACCESS_001  |ctrl_register_access                  |Verify CTRL register R/W at 0xF00 (reset=0x0071)
+21    |TEST_REGISTER_ACCESS_002  |ctrl_enable_bit                       |Verify ENABLE bit controls bridge operation
+22    |TEST_REGISTER_ACCESS_003  |status_register_access                |Verify STATUS register read access and write-1-to-c...
+23    |TEST_REGISTER_ACCESS_004  |status_ready_bit                      |Verify READY bit reflects bridge transfer status
+24    |TEST_REGISTER_ACCESS_005  |error_addr_capture                    |Verify ERROR_ADDR captures failing transfer address
+25    |TEST_REGISTER_ACCESS_006  |error_info_capture                    |Verify ERROR_INFO captures comprehensive error details
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
   ▶  Error Handling
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
-26    |TEST_ERROR_001            |address_error_detection               |Verify bridge detects invalid address ranges and ge... 
-27    |TEST_ERROR_002            |address_error_no_apb                  |Verify no APB transfer initiated for address errors    
-28    |TEST_ERROR_003            |timeout_error_detection               |Verify timeout error when APB slave doesn't respond... 
-29    |TEST_ERROR_004            |timeout_enable_control                |Verify timeout only occurs when TIMEOUT_EN=1           
-30    |TEST_ERROR_005            |timeout_value_configuration           |Verify timeout values match 2^(VAL+4) formula          
-31    |TEST_ERROR_006            |protocol_error_detection              |Verify bridge detects PSLVERR and generates protoco... 
-32    |TEST_ERROR_007            |pslverr_sampling_conditions           |Verify PSLVERR only sampled during valid APB comple... 
+26    |TEST_ERROR_001            |address_error_detection               |Verify bridge detects invalid address ranges and ge...
+27    |TEST_ERROR_002            |address_error_no_apb                  |Verify no APB transfer initiated for address errors
+28    |TEST_ERROR_003            |timeout_error_detection               |Verify timeout error when APB slave doesn't respond...
+29    |TEST_ERROR_004            |timeout_enable_control                |Verify timeout only occurs when TIMEOUT_EN=1
+30    |TEST_ERROR_005            |timeout_value_configuration           |Verify timeout values match 2^(VAL+4) formula
+31    |TEST_ERROR_006            |protocol_error_detection              |Verify bridge detects PSLVERR and generates protoco...
+32    |TEST_ERROR_007            |pslverr_sampling_conditions           |Verify PSLVERR only sampled during valid APB comple...
+33    |TEST_ERROR_008            |error_recovery_back_to_back           |Verify bridge accepts new transfer immediately after error (ERCV-5)
+34    |TEST_ERROR_009            |error_interrupt_enable                |Verify ERR_INT_EN enables STATUS.ERR_INT on any error (ERPT-4)
+35    |TEST_ERROR_010            |multiple_errors_first_captured        |Verify only first error captured until cleared (ERPT-6)
+36    |TEST_ERROR_011            |burst_terminated_on_protocol_error    |Verify PSLVERR during burst terminates remaining beats (PERR-7)
+37    |TEST_ERROR_012            |apb_deassert_after_timeout            |Verify PSEL/PENABLE deasserted after timeout (TERR-4)
+------+--------------------------+--------------------------------------+-------------------------------------------------------
+  ▶  Reset
+------+--------------------------+--------------------------------------+-------------------------------------------------------
+38    |TEST_RESET_001            |soft_reset_initiation                 |Verify SOFT_RST initiates reset, self-clears, 2-cycle recovery
+39    |TEST_RESET_002            |soft_reset_abort_transfer             |Verify soft reset aborts active transfers cleanly
+40    |TEST_RESET_003            |async_reset_assertion                 |Verify async reset during any operation, APB abort verified
+41    |TEST_RESET_004            |reset_safe_state_timing               |Verify ALL outputs and registers reach reset state in 1 cycle
+42    |TEST_RESET_005            |reset_recovery_timing                 |Verify bridge ready exactly 2 cycles after reset de...
+------+--------------------------+--------------------------------------+-------------------------------------------------------
+  ▶  Stress
+------+--------------------------+--------------------------------------+-------------------------------------------------------
+43    |TEST_STRESS_001           |back_to_back_stress_test              |Verify bridge handles 1000+ back-to-back transfers ...
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
   ▶  Cross-Feature
 ------+--------------------------+--------------------------------------+-------------------------------------------------------
-33    |TEST_CROSS_FEATURE_001    |reset_during_burst_transfer           |Verify hard reset during burst transfer recovers co... 
-34    |TEST_CROSS_FEATURE_002    |timeout_error_during_register_access  |Verify timeout error handling doesn't affect regist... 
-35    |TEST_CROSS_FEATURE_003    |soft_reset_during_address_error       |Verify soft reset properly clears address error sta... 
-36    |TEST_CROSS_FEATURE_004    |burst_with_wait_states_and_timeout    |Verify burst handling with APB wait states doesn't ... 
+44    |TEST_CROSS_FEATURE_001    |reset_during_burst_transfer           |Verify hard reset during burst transfer recovers co...
+45    |TEST_CROSS_FEATURE_002    |timeout_error_during_register_access  |Verify timeout error handling doesn't affect regist...
+46    |TEST_CROSS_FEATURE_003    |soft_reset_during_address_error       |Verify soft reset properly clears address error sta...
+47    |TEST_CROSS_FEATURE_004    |burst_with_wait_states_and_timeout    |Verify wait states + timeout coexistence (32-cycle timeout)
 ======+==========================+======================================+=======================================================
-  Total: 36 test cases across 8 categories
+  Total: 47 test cases across 8 categories
+================================================================================================================================
+
+Changes from v1 (36 tests) to v2 (47 tests):
+  NEW TESTS:
+    TEST_PROTOCOL_003      — AHB-6: Two-cycle error response timing
+    TEST_PROTOCOL_004      — APB-3: Signal stability during transfer
+    TEST_MAIN_DATAPATH_008 — CONV-2: Transfer gating negative tests
+    TEST_MAIN_DATAPATH_009 — CONV-6: Direction forwarding (PWRITE=HWRITE)
+    TEST_MAIN_DATAPATH_010 — BURST-5: Burst early termination
+    TEST_MAIN_DATAPATH_011 — BURST-6: 1KB boundary handling
+    TEST_ERROR_008         — ERCV-5: Back-to-back error recovery
+    TEST_ERROR_009         — ERPT-4: Error interrupt enable mechanism
+    TEST_ERROR_010         — ERPT-6: Multiple errors first captured
+    TEST_ERROR_011         — PERR-7: Burst terminated on protocol error
+    TEST_ERROR_012         — TERR-4: APB deassert after timeout
+
+  FIXES TO EXISTING TESTS:
+    TEST_REGISTER_ACCESS_001 — CTRL reset value corrected: 0x0001 → 0x0071 (Table 6)
+    TEST_REGISTER_ACCESS_001 — Write 0x89 description: TIMEOUT_VAL=4 → TIMEOUT_VAL=0
+    TEST_REGISTER_ACCESS_002 — Disable CTRL: 0x0000 → 0x0070 (preserve TIMEOUT_VAL)
+    TEST_CROSS_FEATURE_004   — Timeout: VAL=010/64 cycles → VAL=001/32 cycles
+    TEST_RESET_001           — Added SRST-6 2-cycle recovery verification step
+    TEST_RESET_003           — Added APB abort verification (PSEL=0, PENABLE=0) during reset
+    TEST_RESET_003           — CTRL reset value: 0x0001 → 0x0071
+    TEST_RESET_004           — Enhanced to check ALL Table 12 reset values (outputs + registers)
+    TEST_RESET_005           — Made 1-cycle-after-deassert check definitive (not speculative)
+    TEST_ERROR_001           — Clarified address range is fixed, not configurable
 ================================================================================================================================

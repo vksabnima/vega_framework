@@ -62,8 +62,8 @@ class apb_slv_monitor extends uvm_monitor;
         txn.PREADY  = vif.mon_cb.PREADY;
         txn.PSLVERR = vif.mon_cb.PSLVERR;
 
-        // Per [U4]: call post_randomize() after capturing all signals
-        txn.post_randomize();
+        // NOTE: Do NOT call post_randomize() here — it would overwrite
+        // captured PSLVERR with 0, breaking VG5 error propagation checks.
 
         `uvm_info("APB_MON", $sformatf("Observed: %s", txn.convert2string()), UVM_MEDIUM)
 

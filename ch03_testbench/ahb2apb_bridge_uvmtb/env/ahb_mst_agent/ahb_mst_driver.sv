@@ -97,9 +97,15 @@ class ahb_mst_driver extends uvm_driver #(ahb_mst_seq_item);
       vif.drv_cb.HTRANS    <= 2'b00;  // IDLE — no back-to-back
       vif.drv_cb.HSEL      <= 1'b0;   // Deselect for idle
 
-      // Wait one clock for bridge to transition out of IDLE (deassert
-      // HREADY_OUT).  Without this, we sample HREADY_OUT while the bridge
-      // is still in IDLE state and falsely "complete" the transaction.
+      // Wait TWO clocks for bridge to transition out of IDLE.
+      // Clock 1: bridge NBA-updates state from IDLE → APB_SETUP, but
+      //          drv_cb #1step still sees old HREADY_OUT=1 (from IDLE).
+      // Clock 2: drv_cb #1step now sees HREADY_OUT=0 (from APB_SETUP),
+      //          so the while-loop below correctly waits for completion.
+      // Without both waits, the driver falsely "completes" the transaction
+      // while the bridge is still processing, and drive_idle() zeros HWDATA
+      // before the bridge's APB_ACCESS recapture can read it.
+      @(vif.drv_cb);
       @(vif.drv_cb);
 
       // Now wait for bridge to finish APB transfer: HREADY_OUT=1
