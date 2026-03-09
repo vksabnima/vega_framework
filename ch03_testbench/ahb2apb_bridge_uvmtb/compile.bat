@@ -15,6 +15,7 @@ if not exist work (
 "%QUESTA_HOME%\win64\vlog" -sv -timescale 1ns/1ps ^
     +define+UVM_NO_DPI ^
     +incdir+%UVM_HOME%\src ^
+    +incdir+. ^
     -f tb_list.f
 
 if %ERRORLEVEL% NEQ 0 (

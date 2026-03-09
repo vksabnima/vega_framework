@@ -1,0 +1,114 @@
+================================================================================
+AHB2APB BRIDGE UVM TESTBENCH — TEST RESULTS SUMMARY
+Date: 2026-03-08
+Tool: Questa Intel Starter FPGA Edition 2021.2 (Win64)
+================================================================================
+
+ID | Test Number                              | Description                                                              | Status
+---+-----------------------------------------+--------------------------------------------------------------------------+--------
+ 1 | ahb2apb_bridge_bringup_test              | Bringup — ONE txn, no scoreboard, proves TB alive                        | PASS
+ 2 | ahb2apb_bridge_sanity_test               | Sanity — num_txns, full scoreboard, all verification goals               | PASS
+ 3 | ahb2apb_bridge_datapath_001_test         | Verify single AHB write converts to single APB write                     | PASS
+ 4 | ahb2apb_bridge_datapath_002_test         | Verify AHB address is correctly forwarded to APB                         | PASS
+ 5 | ahb2apb_bridge_datapath_003_test         | Verify AHB write data is directly forwarded to APB                       | PASS
+ 6 | ahb2apb_bridge_datapath_004_test         | Verify APB read data is directly forwarded to AHB                        | PASS
+ 7 | ahb2apb_bridge_datapath_005_test         | Verify INCR4 burst converts to 4 sequential APB transfers               | PASS
+ 8 | ahb2apb_bridge_datapath_006_test         | Verify address increments by HSIZE for INCR bursts                      | PASS
+ 9 | ahb2apb_bridge_datapath_007_test         | Verify WRAP4 burst wraps at 4xHSIZE boundary                            | PASS
+10 | ahb2apb_bridge_connectivity_001_test     | Verify HREADY_OUT is HIGH when bridge is in IDLE state                   | PASS
+11 | ahb2apb_bridge_connectivity_002_test     | Verify control signals remain stable during wait states                  | PASS
+12 | ahb2apb_bridge_connectivity_003_test     | Verify PSEL remains HIGH for both SETUP and ACCESS phases                | PASS
+13 | ahb2apb_bridge_connectivity_004_test     | Verify PENABLE transitions correctly between SETUP and ACCESS phases     | PASS
+14 | ahb2apb_bridge_protocol_001_test         | Verify APB PREADY=0 causes AHB HREADY_OUT=0                             | PASS
+15 | ahb2apb_bridge_protocol_002_test         | Verify APB transfer takes minimum 2 cycles even with PREADY=1           | PASS
+16 | ahb2apb_bridge_reg_access_001_test       | Verify CTRL register R/W at 0xF00 (reset=0x0071)                        | PASS
+17 | ahb2apb_bridge_reg_access_002_test       | Verify ENABLE bit controls bridge operation                              | PASS
+18 | ahb2apb_bridge_reg_access_003_test       | Verify STATUS register W1C (write-1-to-clear) behavior                   | PASS
+19 | ahb2apb_bridge_reg_access_004_test       | Verify READY bit reflects bridge idle/busy status                        | PASS
+20 | ahb2apb_bridge_reg_access_005_test       | Verify ERROR_ADDR captures failing transfer address                      | PASS
+21 | ahb2apb_bridge_reg_access_006_test       | Verify ERROR_INFO captures error type, direction, size                   | PASS
+22 | ahb2apb_bridge_error_001_test            | Verify bridge detects invalid address and generates HRESP=1              | PASS
+23 | ahb2apb_bridge_error_002_test            | Verify no APB transfer initiated for address errors                      | PASS
+24 | ahb2apb_bridge_error_003_test            | Verify timeout error when APB slave exceeds 2^(VAL+4) cycles            | PASS
+25 | ahb2apb_bridge_error_004_test            | Verify timeout only occurs when TIMEOUT_EN=1                             | PASS
+26 | ahb2apb_bridge_error_005_test            | Verify timeout values match 2^(VAL+4) formula                           | PASS
+27 | ahb2apb_bridge_error_006_test            | Verify bridge detects PSLVERR and generates protocol error               | PASS
+28 | ahb2apb_bridge_error_007_test            | Verify PSLVERR only sampled during valid APB completion                  | PASS
+29 | ahb2apb_bridge_reset_001_test            | Verify SOFT_RST bit initiates soft reset, self-clears                    | PASS
+30 | ahb2apb_bridge_reset_002_test            | Verify soft reset aborts active transfers cleanly                        | PASS
+31 | ahb2apb_bridge_reset_003_test            | Verify async reset during any operation                                  | PASS
+32 | ahb2apb_bridge_reset_004_test            | Verify all outputs reach safe state within 1 clock of reset              | PASS
+33 | ahb2apb_bridge_reset_005_test            | Verify bridge ready exactly 2 cycles after reset deassertion             | PASS
+34 | ahb2apb_bridge_stress_001_test           | Verify 1000+ back-to-back transfers without errors                      | PASS
+35 | ahb2apb_bridge_cross_feature_001_test    | Verify hard reset during transfer recovers without data corruption       | PASS
+36 | ahb2apb_bridge_cross_feature_002_test    | Verify timeout error doesn't affect register access functionality        | PASS
+37 | ahb2apb_bridge_cross_feature_003_test    | Verify soft reset clears error state and registers                       | PASS
+38 | ahb2apb_bridge_cross_feature_004_test    | Verify wait states + timeout coexistence (pready_delay < timeout)        | PASS
+39 | ahb2apb_bridge_protocol_003_test         | Verify AHB two-cycle error response for addr error + timeout (AHB-6)     | PASS
+40 | ahb2apb_bridge_protocol_004_test         | Verify APB signal stability during wait states (APB-3)                   | PASS
+41 | ahb2apb_bridge_datapath_008_test         | Verify transfer gating — no APB when ENABLE=0 (CONV-2)                  | PASS
+42 | ahb2apb_bridge_datapath_009_test         | Verify direction forwarding PWRITE=HWRITE (CONV-6)                      | PASS
+43 | ahb2apb_bridge_datapath_010_test         | Verify burst early termination via HTRANS=IDLE (BURST-5)                 | PASS
+44 | ahb2apb_bridge_datapath_011_test         | Verify 1KB AHB boundary handling for bursts (BURST-6)                    | PASS
+45 | ahb2apb_bridge_error_008_test            | Verify back-to-back error recovery (ERCV-5)                             | PASS
+46 | ahb2apb_bridge_error_009_test            | Verify ERR_INT_EN mechanism and STATUS[7] (ERPT-4)                      | PASS
+47 | ahb2apb_bridge_error_010_test            | Verify multiple errors — only first captured until cleared (ERPT-6)      | PASS
+48 | ahb2apb_bridge_error_011_test            | Verify burst terminated on PSLVERR (PERR-7)                             | PASS
+49 | ahb2apb_bridge_error_012_test            | Verify APB signals deasserted after timeout (TERR-4)                     | PASS
+
+================================================================================
+OVERALL: 49/49 PASSED (including bringup + sanity + 47 XTP tests)
+================================================================================
+
+RTL BUGS FIXED (ahb2apb_bridge.sv rewritten to match AHB2APB_Bridge_Spec.pdf):
+  1. CTRL register layout: Implemented per Table 6 — bit[0]=ENABLE(reset=1),
+     bit[1]=SOFT_RST(self-clearing), bit[3]=ERR_INT_EN, bits[6:4]=TIMEOUT_VAL(reset=111),
+     bit[7]=TIMEOUT_EN. Reset value = 0x0000_0071. (Was 0x0000_0100, wrong bit mapping.)
+  2. SOFT_RST mechanism: Added self-clearing soft reset — clears STATUS error bits,
+     ERROR_ADDR, ERROR_INFO, resets FSM, clears APB outputs. (Was missing entirely.)
+  3. ENABLE bit: Added proper ENABLE gate — FSM only initiates APB transfers when
+     ENABLE=1, but register accesses always work regardless of ENABLE. (Was missing.)
+  4. STATUS register: Implemented per Table 7 — bit[0]=READY(RO), bit[1]=BUSY(RO),
+     bit[4]=ADDR_ERR(W1C), bit[5]=PSLVERR(W1C), bit[6]=TIMEOUT_ERR(W1C),
+     bit[7]=ERR_INT(W1C). Reset value = 0x0000_0001. (Was read-only, no W1C, inverted
+     READY/BUSY semantics.)
+  5. Timeout formula: Implemented 2^(TIMEOUT_VAL+4) via case-statement lookup table
+     (VAL=0 -> 16 cycles, VAL=7 -> 2048 cycles). 12-bit counter. (Was direct comparison.)
+  6. ERROR_INFO encoding: Implemented per Table 9/10 — [15:8]=ERR_BEAT,
+     [7:4]=ERR_TYPE(0=none,1=addr,2=timeout,3=PSLVERR), [3]=ERR_WRITE, [2:0]=ERR_SIZE.
+     (Was different bitmask layout.)
+  7. READY/BUSY during register reads: ST_REG_READ treated as idle state so reading
+     STATUS doesn't show BUSY=1. (Was treating all non-IDLE as BUSY.)
+  8. Register access when ENABLE=0: Register range (0xF00-0xFFF) bypasses ENABLE check
+     so configuration works even when bridge is disabled. (Was blocked by ENABLE.)
+  9. ERPT-6 error_captured: Added error_captured flag so only the first error is recorded
+     in ERROR_ADDR/ERROR_INFO until error bits are cleared via W1C. (Was missing.)
+
+TB BUGS FIXED:
+  1. Invalid hex literals: 32'hBAD0_ADDR, 32'hBAD0_DATA, 32'hBAD_ADDR0 — replaced
+     with valid hex values.
+  2. Class name mismatches in reset_003/004 tests: ahb_mst_reset_00X_pre_seq ->
+     ahb_mst_reset_00X_seq.
+  3. APB slave driver PSLVERR timing: Pre-drive during SETUP phase due to clocking
+     block output #1 skew.
+  4. AHB master driver two-clock wait: Extra @(vif.drv_cb) for input sampling timing.
+  5. APB slave monitor post_randomize() overwriting PSLVERR.
+  6. AHB master monitor post_randomize() overwriting HTRANS/HBURST.
+  7. Updated 14 sequence files + 1 test file to match new RTL register layout/behavior.
+  8. reg_access_005/006 sequences: Added W1C clear between consecutive errors for
+     ERPT-6 error_captured compatibility.
+  9. protocol_003 sequence: Removed PSLVERR step (test doesn't set pslverr_inject).
+
+NEW TESTS ADDED (XTP gap analysis — 11 tests):
+  - protocol_003: AHB two-cycle error response (AHB-6)
+  - protocol_004: APB signal stability during wait states (APB-3)
+  - datapath_008: Transfer gating when ENABLE=0 (CONV-2)
+  - datapath_009: Direction forwarding PWRITE=HWRITE (CONV-6)
+  - datapath_010: Burst early termination (BURST-5)
+  - datapath_011: 1KB AHB boundary handling (BURST-6)
+  - error_008: Back-to-back error recovery (ERCV-5)
+  - error_009: ERR_INT_EN mechanism (ERPT-4)
+  - error_010: Multiple errors first-captured lock (ERPT-6)
+  - error_011: Burst terminated on PSLVERR (PERR-7)
+  - error_012: APB deassert after timeout (TERR-4)
+================================================================================
