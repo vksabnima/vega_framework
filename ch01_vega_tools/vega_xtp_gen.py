@@ -1566,10 +1566,10 @@ def main(pdf_path, output_dir=None):
     1. Open {xtp_path} and review
     2. Fix any quality issues listed above
     3. Feed into UVM testbench generator:
-         python vega_llm_tbgen.py --ipxact ahb2apb_bridge.xml \\
-           --meta manifest.json \\
-           --intent verification_intent.txt \\
-           --output_dir ahb2apb_bridge_uvmtb
+         python vega_llm_tbgen.py --ipxact ch01_vega_tools/ahb2apb_bridge.xml \\
+           --meta ch01_vega_tools/manifest.json \\
+           --intent ch01_vega_tools/verification_intent.txt \\
+           --output_dir ch03_testbench/ahb2apb_bridge_uvmtb
 """)
     print("=" * 65)
     return True
@@ -1581,6 +1581,16 @@ def main(pdf_path, output_dir=None):
 
 if __name__ == "__main__":
     import argparse
+    import sys
+
+    # Force UTF-8 stdout/stderr so any non-ASCII glyphs in progress output
+    # don't crash on Windows consoles whose default code page is cp1252
+    # (Python 3.13+).
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):
+        pass
 
     parser = argparse.ArgumentParser(
         prog="vega_xtp_gen.py",
@@ -1588,8 +1598,8 @@ if __name__ == "__main__":
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""
 Examples:
-  python vega_xtp_gen.py AHB2APB_Bridge_Spec.pdf
-  python vega_xtp_gen.py AHB2APB_Bridge_Spec.pdf --output ch02_testplan/outputs
+  python vega_xtp_gen.py ch01_vega_tools/ahb2apb_spec.pdf
+  python vega_xtp_gen.py ch01_vega_tools/ahb2apb_spec.pdf --output ch02_testplan/outputs
 
 Requirements:
   pip install pymupdf anthropic

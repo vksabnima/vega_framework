@@ -1,0 +1,75 @@
+vega_framework — Companion repository to:
+  Cognitive Verification Architecture: A Structured Approach to Modern
+  Hardware Verification — The VEGA Framework
+  by Vikash Kumar (2026)
+
+================================================================================
+  DISCLAIMER
+================================================================================
+
+The views expressed in this repository and the accompanying book are those of
+the author and do not represent the position of any employer, standards body,
+or organization. No endorsement, sponsorship, or affiliation with any
+employer or organization is implied. This work was developed by the author in
+a personal capacity and not as part of, or using, any employer resources,
+confidential information, or proprietary materials. Any references to
+industry standards, protocols, or technologies (including but not limited to
+AMBA, AHB, and APB) are based solely on publicly available information and
+are used for educational and illustrative purposes.
+
+================================================================================
+  THIRD-PARTY INTELLECTUAL PROPERTY NOTICE
+================================================================================
+
+This repository may reference third-party technologies, standards, trademarks,
+or intellectual property, including but not limited to Arm® AMBA® protocols
+(e.g., AHB, APB). All such rights remain the property of their respective
+owners. No license, express or implied, is granted by this repository to any
+third-party intellectual property, including any rights of Arm Limited or its
+affiliates. Use of any third-party technology or specification referenced
+herein may require a separate license from the applicable rights holder.
+
+  • Arm® and AMBA® are registered trademarks of Arm Limited (or its
+    subsidiaries) in the US and/or elsewhere.
+  • AHB and APB are trademarks of Arm Limited.
+  • All other trademarks are the property of their respective owners.
+
+================================================================================
+  ORIGINALITY OF DESIGN ARTIFACTS
+================================================================================
+
+The RTL implementation (`rtl_Design/ahb2apb_bridge.sv`), design
+specification (`ch01_vega_tools/ahb2apb_spec.pdf`), and IP-XACT description
+(`ch01_vega_tools/ahb2apb_bridge.xml`) are author-original works by Vikash
+Kumar. The design and its description are based solely on publicly
+available specification information; no proprietary or confidential
+material from any rights holder is included.
+
+The spec PDF carries its own front-matter Disclaimer, Copyright, and
+Third-Party Intellectual Property Notice — see the document's first
+pages for the authoritative legal text.
+
+The IP-XACT XML uses the standard SPIRIT/IEEE-1685 bus-type identifier
+(`spirit:vendor="arm" spirit:library="amba"`) as required by the IP-XACT
+schema for AMBA bus types. This is a schema-mandated identifier and does not
+imply any endorsement by, sponsorship from, or affiliation with Arm Limited.
+
+================================================================================
+  THIRD-PARTY TOOL OUTPUT
+================================================================================
+
+This repository contains simulator log files in `ch05_debug_regression/logs/`
+that were produced by Mentor Graphics Questa Intel FPGA Starter Edition.
+Those logs include the standard Questa banner and copyright notices
+(© Mentor Graphics Corporation), which are the property of their respective
+owners and are reproduced here only as captured tool output for reference.
+
+================================================================================
+  CODE LICENSE
+================================================================================
+
+The code in this repository is licensed under the MIT License — see LICENSE.
+
+The MIT License applies to author-written source code only. It does not grant
+any rights in third-party trademarks, specifications, or simulator output
+referenced above.

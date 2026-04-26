@@ -6,7 +6,7 @@
 ::   Sanity test : sim.bat ahb2apb_bridge_sanity_test
 
 set QUESTA_HOME=C:\intelFPGA\22.1std\questa_fse
-set LM_LICENSE_FILE=C:\intelFPGA\22.1std\licenses\LR-287299_License.dat
+:: set LM_LICENSE_FILE=<path-to-your-questa-license>  REM uncomment if needed
 
 set TESTNAME=%1
 if "%TESTNAME%"=="" set TESTNAME=ahb2apb_bridge_bringup_test

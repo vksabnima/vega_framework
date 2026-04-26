@@ -60,7 +60,7 @@ ID | Test Number                              | Description                     
 OVERALL: 49/49 PASSED (including bringup + sanity + 47 XTP tests)
 ================================================================================
 
-RTL BUGS FIXED (ahb2apb_bridge.sv rewritten to match AHB2APB_Bridge_Spec.pdf):
+RTL BUGS FIXED (ahb2apb_bridge.sv rewritten to match ahb2apb_spec.pdf):
   1. CTRL register layout: Implemented per Table 6 — bit[0]=ENABLE(reset=1),
      bit[1]=SOFT_RST(self-clearing), bit[3]=ERR_INT_EN, bits[6:4]=TIMEOUT_VAL(reset=111),
      bit[7]=TIMEOUT_EN. Reset value = 0x0000_0071. (Was 0x0000_0100, wrong bit mapping.)

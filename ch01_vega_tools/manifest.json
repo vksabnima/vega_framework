@@ -13,16 +13,17 @@
   "tool": {
     "simulator"   : "questa_fse",
     "questa_path" : "C:\\intelFPGA\\22.1std\\questa_fse",
-    "uvm_version" : "uvm-1.1d",
-    "license_file": "C:\\intelFPGA\\22.1std\\licenses\\LR-287299_License.dat"
+    "uvm_version" : "uvm-1.1d"
   },
 
   "dut": {
     "top_module": "ahb2apb_bridge",
-    "rtl_files" : ["../../rtl_design/ahb2apb_bridge.sv"],
+    "rtl_files" : ["../../rtl_Design/ahb2apb_bridge.sv"],
     "parameters": {
-      "ADDR_WIDTH": 32,
-      "DATA_WIDTH": 32
+      "ADDR_WIDTH"    : 32,
+      "DATA_WIDTH"    : 32,
+      "APB_ADDR_START": "32'h0000_0000",
+      "APB_ADDR_END"  : "32'h0000_FFFF"
     }
   },
 

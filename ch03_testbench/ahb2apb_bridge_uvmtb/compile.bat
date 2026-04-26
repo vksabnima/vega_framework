@@ -4,7 +4,7 @@
 
 set QUESTA_HOME=C:\intelFPGA\22.1std\questa_fse
 set UVM_HOME=%QUESTA_HOME%\verilog_src\uvm-1.1d
-set LM_LICENSE_FILE=C:\intelFPGA\22.1std\licenses\LR-287299_License.dat
+:: set LM_LICENSE_FILE=<path-to-your-questa-license>  REM uncomment if needed
 
 echo [AHB2APB_BRIDGE COMPILE]
 

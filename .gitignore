@@ -1,4 +1,11 @@
-.*.swp 
-.claude/ 
-ahb2apb_bridge_llm_uvmtb_v1/ 
-ch02_testplan/outputs/*_raw_attempt*.txt 
+.*.swp
+.claude/
+ahb2apb_bridge_llm_uvmtb_v1/
+ch02_testplan/outputs/*_raw_attempt*.txt
+
+# Book PDF (kept out of the companion repo)
+Cognitive_Verification_Architecture*.pdf
+
+# Simulation artifacts produced by re-running compile.bat / sim.bat / regression
+ch03_testbench/ahb2apb_bridge_uvmtb/logs/
+ch03_testbench/ahb2apb_bridge_uvmtb/sim_results/

@@ -11,15 +11,207 @@ The same workflow applies to any design.
 
 ## Prerequisites
 
-| Tool | Purpose |
-|------|---------|
-| Questa Intel FPGA Starter Edition (or any UVM-capable simulator) | Compile and simulate |
-| Git Bash (Windows) or Bash (Linux/Mac) | Run shell scripts |
-| Access to an LLM (Claude, ChatGPT, or similar) | Generate test plans, testbench code |
-| Basic familiarity with UVM testbench structure | Understand generated code |
+> **Platform note:** The documented commands and `.bat` scripts target
+> Windows + Questa Intel FPGA Starter Edition. Linux and macOS readers will
+> need to adapt the scripts and Quartus paths.
 
-**Questa FSE path used in this repo:** `C:\intelFPGA\22.1std\questa_fse`
-Update paths in `compile.bat`, `sim.bat`, and `run_all_tests.sh` if your installation differs.
+The book's Chapter 3 §3.4 lists every tool you need. The list below is the same
+in condensed form. Install in order; verify each step before moving on. Commands
+are for Windows Command Prompt (the platform the book targets).
+
+### 1. Python 3.10 or later
+
+```cmd
+winget install Python.Python.3.12
+python --version
+```
+Expected: `Python 3.12.x` or higher.
+
+### 2. Anthropic Python SDK
+
+```cmd
+python -m pip install anthropic
+python -c "import anthropic; print(anthropic.__version__)"
+```
+Expected: a version number (0.40.0 or later).
+
+### 3. PDF text extraction (optional, recommended)
+
+```cmd
+python -m pip install pdfplumber
+```
+Improves protocol-timing accuracy when `--spec` is provided. If skipped, the
+generator falls back to the LLM's protocol knowledge.
+
+### 4. Node.js v20 LTS
+
+```cmd
+winget install OpenJS.NodeJS.LTS
+node --version
+```
+Expected: `v20.x.x` or later. (Claude Code requires Node 18.18+; v20 LTS is
+recommended. Older Node will crash with `TypeError: Object not disposable`.)
+
+### 5. Claude Code
+
+```cmd
+npm install -g @anthropic-ai/claude-code
+claude --version
+```
+Then run `claude` once and complete the browser-based authentication.
+Requires a Claude.ai Pro or Max subscription (covers all fix sessions, no
+per-token billing).
+
+### 6. Git
+
+```cmd
+winget install Git.Git
+git --version
+```
+
+### 7. Questa Intel FPGA Starter Edition
+
+Free, distributed with Quartus Prime Lite from Intel:
+<https://www.intel.com/content/www/us/en/software/programmable/quartus-prime/download.html>
+
+Default install path used throughout this repo: `C:\intelFPGA\22.1std\questa_fse`.
+If yours differs, update `questa_path` in `ch01_vega_tools/manifest.json` and
+the `set QUESTA_HOME=…` lines at the top of `compile.bat` and `sim.bat`.
+
+> **Questa FSE constraint:** the `svverification` license is **not** included.
+> `.randomize()` cannot be called on user-defined objects, and `covergroup`
+> requires a workaround. Every prompt and rule in VEGA accounts for this.
+
+### 8. Anthropic API key
+
+The generator (`vega_llm_tbgen.py`) calls the Anthropic API directly. This is
+**separate** from the Claude Code subscription. One full testbench costs ~$1–2
+in API credits with Claude Opus.
+
+Create a key at <https://console.anthropic.com/settings/keys>, then set it
+permanently in Windows environment variables (System → Advanced → Environment
+Variables → New User variable):
+
+```
+Name : ANTHROPIC_API_KEY
+Value: sk-ant-api03-... (your key)
+```
+
+Verify in a new Command Prompt:
+
+```cmd
+echo %ANTHROPIC_API_KEY%
+```
+Expected output starts with `sk-ant-…`.
+
+---
+
+## Quick Start: Chapter 3 Worked Example
+
+This is the exact command pair from book §3.7.5 — generating the AHB2APB
+bridge UVM testbench end to end. All four required inputs are already in
+`ch01_vega_tools/`; the spec PDF and IP-XACT XML ship with the repo.
+
+### Step 1 — Preview the prompt (no API charge)
+
+`--dry-run` validates every input, builds the master prompt, prints the first
+4,000 characters, and reports token count without calling the API. Always run
+this first.
+
+```cmd
+cd C:\path\to\vega_framework
+
+python ch01_vega_tools\vega_llm_tbgen.py ^
+   --ipxact   ch01_vega_tools\ahb2apb_bridge.xml ^
+   --manifest ch01_vega_tools\manifest.json ^
+   --intent   ch01_vega_tools\verification_intent.txt ^
+   --dry-run
+```
+
+If the pre-flight check passes (no missing sections, design-name match,
+interfaces defined), proceed to Step 2.
+
+### Step 2 — Generate the testbench
+
+```cmd
+python ch01_vega_tools\vega_llm_tbgen.py ^
+   --ipxact   ch01_vega_tools\ahb2apb_bridge.xml ^
+   --manifest ch01_vega_tools\manifest.json ^
+   --intent   ch01_vega_tools\verification_intent.txt ^
+   --spec     ch01_vega_tools\ahb2apb_spec.pdf ^
+   --rtl      rtl_Design\ahb2apb_bridge.sv ^
+   --output   ch03_testbench\ahb2apb_bridge_uvmtb
+```
+
+Allow 3–5 minutes. The script streams each generated file as it lands.
+
+> ⚠️ **Heads-up:** the repo already ships a fully generated reference
+> testbench at `ch03_testbench/ahb2apb_bridge_uvmtb/` (committed so readers
+> can inspect the output without spending API credits). Running Step 2 with
+> the `--output` path above **will overwrite that committed reference**.
+> If you want to keep both, point `--output` to a sibling directory
+> (e.g. `ch03_testbench\ahb2apb_bridge_uvmtb_mine`).
+
+### Expected Output (Step 2)
+
+The first ~30 lines should look like this — use it to confirm your run is
+on track:
+
+```
+VEGA LLM Testbench Generator v2.0
+Model : claude-opus-4-6 | <date>
+
+PARSING INPUTS
+============================================================
+  ✓  IP-XACT  : ahb2apb_bridge | 21 ports
+  ✓  Manifest : 2 interface(s): ahb_mst, apb_slv
+  ✓  Intent   : 1,847 chars
+  ✓  Spec     : 12,340 chars from ahb2apb_spec.pdf
+  ✓  RTL      : ahb2apb_bridge | 21 ports parsed
+
+PRE-FLIGHT CHECK
+============================================================
+  ✓  All checks passed
+
+CREATING DIRECTORY STRUCTURE
+============================================================
+  ✓  7 directories created
+
+LLM GENERATION
+============================================================
+  →  Prompt   : ~8,304 tokens
+  →  Files    : 21 to generate
+  →  Model    : claude-opus-4-6
+  →  Streaming response — files will appear as generated...
+
+  [ 1/21] config/ahb2apb_bridge_dut_config.sv
+  [ 2/21] ahb_mst_if.sv
+  ...
+  [21/21] top/ahb2apb_bridge_dut_bind.sv
+```
+
+After all 21 files stream, the script writes deterministic scaffolding
+(`*_pkg.sv`, `tb_list.f`, `compile.bat`, `sim.bat`, `CLAUDE.md`), runs
+`git init` + iteration-0 commit, and prints `DONE`.
+
+### Step 3 — Fix iteratively with Claude Code
+
+```cmd
+cd ch03_testbench\ahb2apb_bridge_uvmtb
+claude
+```
+
+Claude Code reads `CLAUDE.md` automatically. A typical first session:
+
+```
+> read the directory structure and prepare for compile/sim error fixes
+> run compile.bat and fix any errors
+> run sim.bat and fix any UVM_FATAL or UVM_ERROR
+> run sim.bat ahb2apb_bridge_sanity_test and fix any errors
+> commit as iteration-1
+```
+
+See book §3.7.7 for the full fix-session walkthrough.
 
 ---
 
@@ -51,76 +243,154 @@ vega_framework/
 |------|---------|
 | `manifest.json` | Project configuration — design name, simulator paths, interfaces, verification goals |
 | `verification_intent.txt` | Plain-English description of what to drive, observe, and check |
+| `ahb2apb_bridge.xml` | IP-XACT (IEEE 1685) port description for the bridge |
+| `ahb2apb_spec.pdf` | Design specification (author-original) — see PDF front-matter for the disclaimer and IP notice |
 | `vega_xtp_gen.py` | Script to generate XTP from spec + prompts (used in Chapter 2) |
 | `vega_llm_tbgen.py` | Script to generate UVM testbench from XTP + manifest (used in Chapter 3) |
 
-### What to Do
+### Setup Walkthrough
 
-1. Read `verification_intent.txt` — this is the **only file the engineer writes per project**
-2. Read `manifest.json` — defines design, interfaces, clocks, resets, and verification goals
-3. Place your design spec PDF in this folder (e.g., `AHB2APB_Bridge_Spec.pdf`)
-4. Place your IP-XACT XML in this folder (e.g., `ahb2apb_bridge.xml`)
+For the AHB2APB bridge worked example shipped in this repo, all four required
+inputs are already in place — no setup needed beyond completing the
+[Prerequisites](#prerequisites). Skip directly to Chapter 2 or Chapter 3.
 
-### Key Concept
+For your own design, follow these steps before running the generators:
 
-The verification intent uses **no signal names, no SystemVerilog, no UVM knowledge**. It has four sections:
-- **DRIVE** — what stimulus to generate
-- **OBSERVE** — what to monitor
-- **CHECK** — verification goals (VG1–VG6)
-- **OUT OF SCOPE** — what this phase does NOT cover
+**Step 1 — Confirm the toolchain.** From the [Prerequisites](#prerequisites)
+section, you should already have Python 3.10+, the `anthropic` SDK, Node.js 20
+LTS, Claude Code, Git, Questa FSE, and `ANTHROPIC_API_KEY` set. Verify:
 
-### How to Verify
+```cmd
+python --version
+python -c "import anthropic; print(anthropic.__version__)"
+node --version
+claude --version
+git --version
+echo %ANTHROPIC_API_KEY%
+```
+
+**Step 2 — Place your inputs in `ch01_vega_tools/`.** Use the existing AHB2APB
+files as templates:
+
+```cmd
+copy <your_design>.xml          ch01_vega_tools\
+copy <your_design>_spec.pdf     ch01_vega_tools\
+```
+
+**Step 3 — Edit `manifest.json`** to match your DUT (top module name, RTL
+file path relative to `ch03_testbench/<output_dir>/`, clock + reset port
+names, interface roles, verification goals). The manifest is the only file
+that requires deliberate engineering judgment.
+
+**Step 4 — Write `verification_intent.txt`** in plain English. Four sections:
+
+- **DRIVE** — what stimulus to generate (transaction types, addresses, data patterns)
+- **OBSERVE** — what to monitor (when to capture, which signals mark capture point)
+- **CHECK** — verification goals as `VGn — <condition that must hold true>`
+- **OUT OF SCOPE** — what this testbench intentionally does NOT verify
+
+Takes under ten minutes per design. The LLM implements this directly in the
+driver, monitor, scoreboard, and sequences — vague intent produces a TB that
+compiles but checks nothing meaningful.
+
+**Step 5 — Verify your inputs are in place.**
 
 ```bash
-# Check files are in place
 ls ch01_vega_tools/
-# Expected: manifest.json  vega_llm_tbgen.py  vega_xtp_gen.py  verification_intent.txt
+# Expected (minimum): manifest.json  verification_intent.txt
+#                     vega_llm_tbgen.py  vega_xtp_gen.py
+#                     <your_design>.xml  <your_design>_spec.pdf
 ```
+
+You're now ready for Chapter 2 (test-plan generation) or skip directly to
+Chapter 3 (testbench generation).
 
 ---
 
 ## Chapter 2 — Test Plan Synthesis (XTP)
 
-**Goal:** Generate an Executable Test Plan (XTP) from the design specification using LLM prompts.
+**Goal:** Generate an Executable Test Plan (XTP) from the design specification.
+Two paths produce the same artifact (book §2.2): an automated one-shot script
+or a four-step manual flow with explicit review gates.
 
 ### Folder Contents
 
 | Folder/File | Purpose |
 |-------------|---------|
-| `prompts/` | VEGA prompts — feature extraction, review |
-| `outputs/AHB2APB_Bridge_Spec_testplan.xtp` | Generated XTP (reference output) |
-| `outputs/AHB2APB_Bridge_Spec_summary.csv` | Feature summary table |
-| `outputs/AHB2APB_Bridge_Spec_summary.txt` | Human-readable summary |
+| `prompts/step1_feature_extraction.txt` | Step 1 prompt — extracts features + ambiguity register |
+| `prompts/step1a_feature_extraction.txt` | Step 1a prompt — adds summary tables |
+| `prompts/step1b_review.txt` | Step 1b prompt — feature-list review (PASS/FAIL per feature) |
+| `outputs/AHB2APB_Bridge_Spec_testplan.xtp` | Reference XTP — the final Executable Test Plan |
+| `outputs/AHB2APB_Bridge_Spec_summary.csv` | Reference feature summary table |
+| `outputs/AHB2APB_Bridge_Spec_summary.txt` | Reference human-readable summary |
 
-### Steps to Follow
+> The committed `AHB2APB_Bridge_Spec_*` outputs are reference artifacts from
+> a past run. A fresh run with the renamed spec PDF will produce filenames
+> derived from the new spec stem (e.g., `ahb2apb_spec_testplan.xtp`).
 
-1. Open `prompts/step1_feature_extraction.txt`
-2. Paste the prompt into your LLM along with your design spec PDF
-3. Save the LLM output
-4. Repeat with `step1a_feature_extraction.txt` (adds summary tables)
-5. Repeat with `step1b_review.txt` (review and refine)
-6. Compare your output to `outputs/AHB2APB_Bridge_Spec_testplan.xtp`
+### Path A — Automated (one command, book §2.3)
+
+`vega_xtp_gen.py` sends the full PDF to Claude in a single API call, requests a
+structured JSON extraction of features + test cases, runs a 12-point quality
+validator, reprompts up to 3× if the score is below 80%, and writes the XTP.
+
+```cmd
+python -m pip install pymupdf anthropic
+
+python ch01_vega_tools\vega_xtp_gen.py ^
+   ch01_vega_tools\ahb2apb_spec.pdf ^
+   --output ch02_testplan\outputs
+```
+
+Cost: typically a few cents per spec. Output: a single `*_testplan.xtp` plus
+`*_summary.{csv,txt}` in the chosen output directory.
+
+When to use Path A: well-structured specs and protocols the model already
+knows. When to skip it: specs that rely heavily on tables, timing diagrams,
+or cross-references the model may misread (book §2.3.2).
+
+### Path B — Manual, four steps with explicit gates (book §2.4)
+
+For specs that need architect-in-the-loop review, run the four prompts in
+`prompts/` sequentially, with a Verification Strategist gate between each:
+
+| Step | Prompt | Output | Gate |
+|------|--------|--------|------|
+| 1a | `prompts/step1a_feature_extraction.txt` | Feature list + ambiguity register | Architect sign-off on blockers |
+| 1b | `prompts/step1b_review.txt` | PASS/FAIL per feature | "Ready for" verdict |
+| 2  | (cross-feature interaction prompt — book §2.4.3) | Test table with traceability | Strategist approval |
+| 3  | (XTP generation + validation prompt — book §2.4.4) | Signed-off XTP | All 12 validation checks pass |
+
+For each step, paste the prompt + design spec PDF into Claude (or any LLM)
+and save the response. Compare to the reference outputs in `outputs/`.
 
 ### How to Verify
 
 ```bash
-# Check XTP was generated
-cat ch02_testplan/outputs/AHB2APB_Bridge_Spec_testplan.xtp | head -50
+# XTP exists and parses
+head -50 ch02_testplan/outputs/AHB2APB_Bridge_Spec_testplan.xtp
 
-# Check feature count — should list features across categories:
-# AHB protocol, APB protocol, conversion, burst, error, reset, register
+# Feature count across categories (AHB, APB, conversion, burst, error,
+# reset, register) — expect ~47 across 8 categories
 grep "FEATURE" ch02_testplan/outputs/AHB2APB_Bridge_Spec_testplan.xtp | wc -l
 ```
 
 ### Key Output
 
-`outputs/AHB2APB_Bridge_Spec_testplan.xtp` — the complete Executable Test Plan, input for Chapter 3.
+The XTP is the contract handed to Chapter 3. Every test scenario the
+testbench generates traces back to a row in this file.
 
 ---
 
 ## Chapter 3 — UVM Testbench Generation
 
 **Goal:** Generate the UVM testbench infrastructure and verify it compiles and runs with bringup + sanity tests.
+
+> The full generator-driven flow (book §3.7.5) is documented in
+> [Quick Start: Chapter 3 Worked Example](#quick-start-chapter-3-worked-example) above.
+> The section below describes the **already-generated** reference testbench
+> shipped in this repo and how to compile / simulate it directly without
+> regenerating.
 
 ### Folder Contents
 
@@ -490,4 +760,47 @@ cat ch05_debug_regression/logs/<test_name>.log | grep -E "PASSED|FAILED|ERROR"
 
 ## License
 
-This repository is provided as a learning companion to the VEGA Framework book.
+The code in this repository is released under the **MIT License** — see
+[`LICENSE`](LICENSE) for the full text.
+
+The MIT License applies to author-written source code only. It does not grant
+any rights in third-party trademarks, specifications, or simulator output
+referenced in this repo. See [`NOTICE`](NOTICE) for the full third-party
+disclaimer.
+
+---
+
+## Trademarks
+
+Arm® and AMBA® are registered trademarks of Arm Limited (or its
+subsidiaries) in the US and/or elsewhere. AHB and APB are trademarks of Arm
+Limited. All other trademarks are the property of their respective owners.
+
+This repository implements protocol logic from publicly available
+specifications and is not endorsed by, sponsored by, or affiliated with Arm
+Limited. The IP-XACT XML uses standard SPIRIT/IEEE-1685 bus-type identifiers
+as required by the IP-XACT schema.
+
+For the full Third-Party Intellectual Property Notice (mirroring the book's
+copyright-page disclaimer), see [`NOTICE`](NOTICE).
+
+---
+
+## Citation
+
+If you reference this repository or the VEGA framework in academic or
+professional work, please cite the book:
+
+```
+Kumar, V. (2026). Cognitive Verification Architecture: A Structured Approach
+to Modern Hardware Verification — The VEGA Framework. Self-published.
+Companion repository: https://github.com/vksabnima/vega_framework
+```
+
+---
+
+## Contact
+
+Author: Vikash Kumar
+For permissions requests, academic licensing inquiries, or questions about
+the framework: **vikash.singh261@gmail.com**

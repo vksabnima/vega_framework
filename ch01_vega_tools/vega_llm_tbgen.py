@@ -5,12 +5,12 @@ Vikash Kumar — Cognitive Verification Architecture: The VEGA Framework
 
 Usage:
   python vega_llm_tbgen.py \\
-    --ipxact   manifest/ahb2apb_bridge.xml \\
-    --manifest manifest/manifest.json \\
-    --intent   manifest/verification_intent.txt \\
-    --spec     manifest/ahb2apb_spec.pdf         [optional] \\
-    --rtl      ../../rtl/ahb2apb_bridge.sv        [optional] \\
-    --output   ahb2apb_bridge_uvmtb
+    --ipxact   ch01_vega_tools/ahb2apb_bridge.xml \\
+    --manifest ch01_vega_tools/manifest.json \\
+    --intent   ch01_vega_tools/verification_intent.txt \\
+    --spec     ch01_vega_tools/ahb2apb_spec.pdf   [optional] \\
+    --rtl      rtl_Design/ahb2apb_bridge.sv       [optional] \\
+    --output   ch03_testbench/ahb2apb_bridge_uvmtb
 
 Workflow:
   STEP 1  This script generates TB scaffolding + git init
@@ -1097,20 +1097,28 @@ def git_init_and_commit(outdir):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main():
+    # Force UTF-8 stdout/stderr so the ✓ ⚠ ✗ → glyphs below don't crash on
+    # Windows consoles whose default code page is cp1252 (Python 3.13+).
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, OSError):
+        pass
+
     ap = argparse.ArgumentParser(
         description=f"VEGA LLM UVM Testbench Generator v{VERSION}",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent(f"""
         Example:
           python vega_llm_tbgen.py \\
-            --ipxact   manifest/ahb2apb_bridge.xml \\
-            --manifest manifest/manifest.json \\
-            --intent   manifest/verification_intent.txt \\
-            --spec     manifest/ahb2apb_spec.pdf \\
-            --output   ahb2apb_bridge_uvmtb
+            --ipxact   ch01_vega_tools/ahb2apb_bridge.xml \\
+            --manifest ch01_vega_tools/manifest.json \\
+            --intent   ch01_vega_tools/verification_intent.txt \\
+            --spec     ch01_vega_tools/ahb2apb_spec.pdf \\
+            --output   ch03_testbench/ahb2apb_bridge_uvmtb
 
         After generation:
-          cd ahb2apb_bridge_uvmtb
+          cd ch03_testbench/ahb2apb_bridge_uvmtb
           claude
           > "run compile.bat and fix any errors"
           > "commit as iteration-1"
