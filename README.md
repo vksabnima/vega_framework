@@ -14,6 +14,32 @@ same governed workflow applies to any design.
 
 ---
 
+## Simulator Independence
+
+VEGA is a **methodology, not a tool tied to one simulator.** The framework —
+governed, intent-driven generation with full traceability from design intent
+to verification evidence — applies to **any SystemVerilog/UVM simulator**
+(Questa, VCS, Xcelium, Riviera-PRO, and others).
+
+This repository uses **Questa Intel FPGA Starter Edition** as the reference
+environment only because it is free and widely available. Everything
+simulator-specific is confined to a thin outer layer:
+
+- **The generated UVM testbench** (env, agents, scoreboard, sequences, tests)
+  is standard SystemVerilog/UVM and runs on any UVM simulator as-is.
+- **The `.bat` scripts** (`compile.bat`, `sim.bat`, `waves.bat`) just wrap one
+  tool's invocation — swap them for your simulator's compile/run commands.
+- **The Questa-FSE accommodations** (manual `.randomize()`, associative-array
+  coverage instead of `covergroup`) exist only because the *free* edition
+  omits the `svverification` license. On a fully licensed simulator you can
+  drop them and use native `.randomize()`, `covergroup`, and `uvm_reg`.
+
+The parts that *are* VEGA — the prompts, the XTP flow, the quality gates, and
+the Verification Strategist governance model — are identical regardless of
+which simulator runs the result.
+
+---
+
 ## Prerequisites
 
 > **Platform note:** The documented commands and `.bat` scripts target
