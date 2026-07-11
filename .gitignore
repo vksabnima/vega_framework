@@ -1,0 +1,29 @@
+.*.swp
+.claude/
+ahb2apb_bridge_llm_uvmtb_v1/
+ch02_testplan/outputs/*_raw_attempt*.txt
+
+# Python bytecode / caches
+__pycache__/
+*.pyc
+
+# Book manuscript sources are kept out of this code companion repo
+*.tex
+TEMP BOOK/
+
+# Book PDF (kept out of the companion repo)
+Cognitive_Verification_Architecture*.pdf
+
+# Simulation artifacts produced by re-running compile.bat / sim.bat / regression
+ch03_testbench/ahb2apb_bridge_uvmtb/logs/
+ch03_testbench/ahb2apb_bridge_uvmtb/sim_results/
+ch03_testbench/ahb2apb_bridge_uvmtb/work/
+ch03_testbench/ahb2apb_bridge_uvmtb/regression_logs/
+ch03_testbench/ahb2apb_bridge_uvmtb/regression_summary.csv
+ch03_testbench/ahb2apb_bridge_uvmtb/*.log
+ch03_testbench/ahb2apb_bridge_uvmtb/transcript*
+ch03_testbench/ahb2apb_bridge_uvmtb/.vega_raw_response.txt
+
+# Transient generation/probe logs (root)
+vega_gen_*.log
+vega_probe.log

@@ -1,0 +1,194 @@
+Reading pref.tcl
+
+# 2021.2
+
+# vsim -c -do "run -all; quit -f" tb_top_opt "+UVM_TESTNAME=ahb2apb_bridge_datapath_006_test" "+UVM_VERBOSITY=UVM_LOW" -suppress 8887 
+# Start time: 14:46:59 on Mar 09,2026
+# //  Questa Intel Starter FPGA Edition-64
+# //  Version 2021.2 win64 Apr 14 2021
+# //
+# //  Copyright 1991-2021 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  QuestaSim and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# Loading sv_std.std
+# Loading work.ahb_mst_if(fast)
+# Loading work.apb_slv_if(fast)
+# Loading work.reset_ctrl_if(fast)
+# Loading mtiUvm.uvm_pkg(fast)
+# Loading work.ahb2apb_bridge_pkg(fast)
+# Loading mtiUvm.questa_uvm_pkg(fast)
+# Loading work.tb_top(fast)
+# Loading work.reset_ctrl_if(fast__2)
+# Loading work.ahb_mst_if(fast__2)
+# Loading work.apb_slv_if(fast__2)
+# Loading work.ahb2apb_bridge(fast)
+# Loading C:/intelFPGA/22.1std/questa_fse/uvm-1.1d\win64\uvm_dpi.dll
+# run -all
+# ----------------------------------------------------------------
+# UVM-1.1d
+# (C) 2007-2013 Mentor Graphics Corporation
+# (C) 2007-2013 Cadence Design Systems, Inc.
+# (C) 2006-2013 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_MUST_HAVE_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# UVM_INFO @ 0: reporter [RNTST] Running test ahb2apb_bridge_datapath_006_test...
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_datapath_006_test.sv(60) @ 0: uvm_test_top [DATAPATH_006] === TEST START ===
+# UVM_INFO ../../ch04_tests/sequences/ahb_mst_datapath_006_seq.sv(35) @ 150000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_datapath_006_seq] ===== TEST_MAIN_DATAPATH_006: INCR address increment =====
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 435000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_datapath_006_seq] DATAPATH_006_inc0 PASS: [0x00002000] = 0xa0000000
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 495000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_datapath_006_seq] DATAPATH_006_inc1 PASS: [0x00002004] = 0xa0000001
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 555000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_datapath_006_seq] DATAPATH_006_inc2 PASS: [0x00002008] = 0xa0000002
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 615000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_datapath_006_seq] DATAPATH_006_inc3 PASS: [0x0000200c] = 0xa0000003
+# UVM_INFO sequences/ahb_mst_base_seq.sv(201) @ 615000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_datapath_006_seq] TEST_MAIN_DATAPATH_006 SUMMARY: 4 PASS, 0 FAIL
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_datapath_006_test.sv(71) @ 815000: uvm_test_top [DATAPATH_006] === TEST COMPLETE ===
+# UVM_INFO verilog_src/uvm-1.1d/src/base/uvm_objection.svh(1267) @ 815000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(222) @ 815000: uvm_test_top.env.scb [SCB] ========== SCOREBOARD CHECK PHASE ==========
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(227) @ 815000: uvm_test_top.env.scb [SCB_VG6] PASS: AHB=8 APB=8 transactions, queues empty
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(236) @ 815000: uvm_test_top.env.scb [SCB] ---------- Verification Goal Summary ----------
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(237) @ 815000: uvm_test_top.env.scb [SCB] VG1 (Address)   : PASS=8 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(238) @ 815000: uvm_test_top.env.scb [SCB] VG2 (Write Data) : PASS=4 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(239) @ 815000: uvm_test_top.env.scb [SCB] VG3 (Read Data)  : PASS=4 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(240) @ 815000: uvm_test_top.env.scb [SCB] VG4 (Direction)  : PASS=8 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(241) @ 815000: uvm_test_top.env.scb [SCB] VG5 (Error Prop) : PASS=8 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(242) @ 815000: uvm_test_top.env.scb [SCB] VG6 (Count Match): PASS=1 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(243) @ 815000: uvm_test_top.env.scb [SCB] ------------------------------------------------
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(476) @ 815000: uvm_test_top.env.cov [COV] ========== FUNCTIONAL COVERAGE REPORT ==========
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(477) @ 815000: uvm_test_top.env.cov [COV]   AHB_TXN          : 25.4%  (15/59 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(479) @ 815000: uvm_test_top.env.cov [COV]   APB_TXN          : 54.5%  (6/11 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(481) @ 815000: uvm_test_top.env.cov [COV]   REGISTER_ACCESS  : 0.0%  (0/12 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(483) @ 815000: uvm_test_top.env.cov [COV]   ERROR_SCENARIOS  : 0.0%  (0/11 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(485) @ 815000: uvm_test_top.env.cov [COV]   AHB_PROTOCOL     : 76.9%  (10/13 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(487) @ 815000: uvm_test_top.env.cov [COV]   APB_PROTOCOL     : 68.2%  (15/22 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(489) @ 815000: uvm_test_top.env.cov [COV]   ----------------------------------------
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(490) @ 815000: uvm_test_top.env.cov [COV]   OVERALL          : 35.9%  (46/128 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(492) @ 815000: uvm_test_top.env.cov [COV] ================================================
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(535) @ 815000: uvm_test_top.env.cov [COV] UNCOVERED BINS (82):
+#     AHB_TXN.haddr_range.APB_MID
+#     AHB_TXN.haddr_range.APB_HIGH
+#     AHB_TXN.haddr_range.REG_RANGE
+#     AHB_TXN.haddr_range.OUT_OF_RANGE
+#     AHB_TXN.hsize.BYTE
+#     AHB_TXN.hsize.HALFWORD
+#     AHB_TXN.hburst.WRAP4
+#     AHB_TXN.hburst.INCR4
+#     AHB_TXN.hburst.WRAP8
+#     AHB_TXN.hburst.INCR8
+#     AHB_TXN.hburst.WRAP16
+#     AHB_TXN.hburst.INCR16
+#     AHB_TXN.hresp.ERROR
+#     AHB_TXN.addr_x_write.APB_MID.WRITE
+#     AHB_TXN.addr_x_write.APB_MID.READ
+#     AHB_TXN.addr_x_write.APB_HIGH.WRITE
+#     AHB_TXN.addr_x_write.APB_HIGH.READ
+#     AHB_TXN.addr_x_write.REG_RANGE.WRITE
+#     AHB_TXN.addr_x_write.REG_RANGE.READ
+#     AHB_TXN.addr_x_write.OUT_OF_RANGE.WRITE
+#     AHB_TXN.addr_x_write.OUT_OF_RANGE.READ
+#     AHB_TXN.burst_x_write.SINGLE.WRITE
+#     AHB_TXN.burst_x_write.INCR.READ
+#     AHB_TXN.burst_x_write.WRAP4.WRITE
+#     AHB_TXN.burst_x_write.WRAP4.READ
+#     AHB_TXN.burst_x_write.INCR4.WRITE
+#     AHB_TXN.burst_x_write.INCR4.READ
+#     AHB_TXN.burst_x_write.WRAP8.WRITE
+#     AHB_TXN.burst_x_write.WRAP8.READ
+#     AHB_TXN.burst_x_write.INCR8.WRITE
+#     AHB_TXN.burst_x_write.INCR8.READ
+#     AHB_TXN.burst_x_write.WRAP16.WRITE
+#     AHB_TXN.burst_x_write.WRAP16.READ
+#     AHB_TXN.burst_x_write.INCR16.WRITE
+#     AHB_TXN.burst_x_write.INCR16.READ
+#     AHB_TXN.write_x_resp.WRITE.ERROR
+#     AHB_TXN.write_x_resp.READ.ERROR
+#     AHB_TXN.burst_x_resp.SINGLE.ERROR
+#     AHB_TXN.burst_x_resp.WRAP4.OKAY
+#     AHB_TXN.burst_x_resp.INCR4.OKAY
+#     AHB_TXN.burst_x_resp.WRAP8.OKAY
+#     AHB_TXN.burst_x_resp.INCR8.OKAY
+#     AHB_TXN.burst_x_resp.WRAP16.OKAY
+#     AHB_TXN.burst_x_resp.INCR16.OKAY
+#     APB_TXN.paddr_range.APB_MID
+#     APB_TXN.paddr_range.APB_HIGH
+#     APB_TXN.pslverr.ERROR
+#     APB_TXN.pwrite_x_pslverr.WRITE.ERROR
+#     APB_TXN.pwrite_x_pslverr.READ.ERROR
+#     REG.offset.CTRL
+#     REG.offset.STATUS
+#     REG.offset.ERROR_ADDR
+#     REG.offset.ERROR_INFO
+#     REG.rw.READ
+#     REG.rw.WRITE
+#     REG.offset_x_rw.CTRL.READ
+#     REG.offset_x_rw.CTRL.WRITE
+#     REG.offset_x_rw.STATUS.READ
+#     REG.offset_x_rw.STATUS.WRITE
+#     REG.offset_x_rw.ERROR_ADDR.READ
+#     REG.offset_x_rw.ERROR_INFO.READ
+#     ERR.direction.WRITE
+#     ERR.direction.READ
+#     ERR.addr.JUST_ABOVE
+#     ERR.addr.MID_RANGE
+#     ERR.addr.FAR_ABOVE
+#     ERR.dir_x_addr.WRITE.JUST_ABOVE
+#     ERR.dir_x_addr.WRITE.MID_RANGE
+#     ERR.dir_x_addr.WRITE.FAR_ABOVE
+#     ERR.dir_x_addr.READ.JUST_ABOVE
+#     ERR.dir_x_addr.READ.MID_RANGE
+#     ERR.dir_x_addr.READ.FAR_ABOVE
+#     AHB_PROT.hresp.ERROR
+#     AHB_PROT.error_response.ERROR_STALL
+#     AHB_PROT.error_response.ERROR_READY
+#     APB_PROT.pready.WAIT
+#     APB_PROT.pslverr.ERROR
+#     APB_PROT.phase_trans.ACCESS_TO_ACCESS
+#     APB_PROT.phase_x_ready.IDLE.WAIT
+#     APB_PROT.phase_x_ready.ACCESS.WAIT
+#     APB_PROT.pwrite_x_pslverr.WRITE.ERROR
+#     APB_PROT.pwrite_x_pslverr.READ.ERROR
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(258) @ 815000: uvm_test_top.env.scb [SCB] ---------- Transaction Summary ----------
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(259) @ 815000: uvm_test_top.env.scb [SCB]   AHB sent     : 8
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(260) @ 815000: uvm_test_top.env.scb [SCB]   APB received : 8
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(261) @ 815000: uvm_test_top.env.scb [SCB]   Matched      : 8
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(279) @ 815000: uvm_test_top.env.scb [SCB] ----------------------------------------
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(285) @ 815000: uvm_test_top.env.scb [SCB] ========== ALL VERIFICATION GOALS PASSED ==========
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_datapath_006_test.sv(86) @ 815000: uvm_test_top [DATAPATH_006] ========== TEST PASSED ==========
+# 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :   38
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [COV]    11
+# [DATAPATH_006]     3
+# [RNTST]     1
+# [SCB]    15
+# [SCB_VG6]     1
+# [TEST_DONE]     1
+# [ahb_mst_datapath_006_seq]     6
+# ** Note: $finish    : C:/intelFPGA/22.1std/questa_fse/win64/../verilog_src/uvm-1.1d/src/base/uvm_root.svh(430)
+#    Time: 815 ns  Iteration: 54  Instance: /tb_top
+# End time: 14:47:01 on Mar 09,2026, Elapsed time: 0:00:02
+# Errors: 0, Warnings: 0

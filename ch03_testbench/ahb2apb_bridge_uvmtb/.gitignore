@@ -1,0 +1,23 @@
+# Questa work library + simulation artifacts
+work/
+transcript
+*.wlf
+*.vcd
+*.log
+*.csv
+vsim.wlf
+.vega_raw_response.txt
+
+# VEGA generator / Phase-1 orchestrator internal artifacts
+.no_harm_baseline.json
+vega_phase1_report.md
+
+# Regression run outputs
+regression_logs/
+regression_run.log
+
+# Generated functional-coverage data (the curated sign-off report lives in
+# ch08_coverage_signoff/coverage_report.txt; these are raw per-run dumps)
+coverage_hits.txt
+coverage_defined.txt
+coverage_report_measured.txt

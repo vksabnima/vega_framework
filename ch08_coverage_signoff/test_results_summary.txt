@@ -1,0 +1,134 @@
+================================================================================
+AHB2APB BRIDGE UVM TESTBENCH - TEST RESULTS SUMMARY
+Date: 2026-06-13
+Tool: Questa Intel Starter FPGA Edition 2021.2 (Win64)
+================================================================================
+
+ ID | Test                               | Description                                                        | Status
+----+------------------------------------+--------------------------------------------------------------------+-------
+  1 | ahb2apb_bridge_bringup_test        | Drives ONE transaction only. No scoreboard checks.                 | PASS
+  2 | ahb2apb_bridge_sanity_test         | Drives num_txns (5) transactions with full scoreboard checking.    | PASS
+  3 | test_bringup_init_001              | Verifies that with PCLK tied to HCLK in a single clock domain,     | PASS
+  4 | test_bringup_init_002              | Verifies that PCLK is edge-aligned to HCLK throughout bringup so   | PASS
+  5 | test_bringup_init_003              | Verifies the bridge in single-clock-domain config (PCLK==HCLK)     | PASS
+  6 | test_bringup_init_004              | Verifies the bridge operates under one clock domain only           | PASS
+  7 | test_connectivity_001              | Verifies the HADDR address bus is fully connected by driving the   | PASS
+  8 | test_connectivity_002              | Verifies the HWDATA write data bus is fully connected by driving   | PASS
+  9 | test_connectivity_003              | Verifies read-data bus connectivity and write/read correspondence  | PASS
+ 10 | test_connectivity_004              | Verifies HCLK is connected and that all state progression and      | PASS
+ 11 | test_connectivity_005              | Verifies HRESETn is connected by asserting reset and confirming    | PASS
+ 12 | test_connectivity_006              | Verifies PADDR drives both the minimum (0x0000_0000) and the       | PASS
+ 13 | test_connectivity_007              | Verifies PWDATA correctly carries walking/boundary data patterns   | PASS
+ 14 | test_connectivity_008              | Verifies peripheral read data on PRDATA is correctly returned and  | PASS
+ 15 | test_connectivity_009              | Verifies peripheral-side phase progression (SETUP->ACTIVE) adva... | PASS
+ 16 | test_connectivity_010              | Verifies PRESETn forces the peripheral-side outputs to their       | PASS
+ 17 | test_coverage_closure_001          | Directed coverage-closure test.  The feature regression leaves     | PASS
+ 18 | test_cross_feature_001             | Exposes state-machine corruption / dangling target-side phase      | PASS
+ 19 | test_cross_feature_002             | Exposes error-latching faults when PSLVERR is asserted on the      | PASS
+ 20 | test_cross_feature_003             | Exposes mid-transfer reconfiguration hazards when CTRL.ENABLE is   | PASS
+ 21 | test_cross_feature_004             | Exposes incomplete soft-reset behavior where SOFT_RST clears ac... | PASS
+ 22 | test_cross_feature_005             | Exposes protocol/state-machine faults when HSEL is deasserted      | PASS
+ 23 | test_cross_feature_006             | Exposes error-isolation faults in a back-to-back stream where one  | PASS
+ 24 | test_error_001                     | Verifies basic address-error handling: a request to an invalid     | PASS
+ 25 | test_error_002                     | Verifies boundary discrimination of the address-error logic:       | PASS
+ 26 | test_error_003                     | Verifies invalid-address READ detection and read-direction         | PASS
+ 27 | test_error_004                     | Verifies address-error detection on a request following a valid    | PASS
+ 28 | test_error_005                     | Verifies that a timeout error is detected, captured in STATUS,     | PASS
+ 29 | test_error_006                     | Negative / control test verifying that with TIMEOUT_EN=0 a         | PASS
+ 30 | test_error_007                     | Verifies that a timeout error sets BOTH TIMEOUT_ERR (STATUS b6)    | PASS
+ 31 | test_error_008                     | Verifies the timeout window boundary: a just-in-time PREADY        | PASS
+ 32 | test_error_009                     | Verifies a single target-side error (PSLVERR=1) during an active   | PASS
+ 33 | test_error_010                     | Verifies a target error injected on a READ transfer is captured    | PASS
+ 34 | test_error_011                     | Verifies the sticky behavior of STATUS.PSLVERR after a target      | PASS
+ 35 | test_error_013                     | Verifies that a target error (PSLVERR) asserted during the active  | PASS
+ 36 | test_error_014                     | Verifies the precise cycle timing of HRESP assertion relative to   | PASS
+ 37 | test_error_015                     | Verifies the address-error class is distinct from a target PSLVERR | PASS
+ 38 | test_error_016                     | Verifies a target error transfer immediately followed (after a     | PASS
+ 39 | test_main_datapath_001             | Verifies a single (non-sequence) HTRANS=NONSEQ write transfer      | PASS
+ 40 | test_main_datapath_002             | Verifies an incrementing multi-transfer sequence (NONSEQ then SEQ) | PASS
+ 41 | test_main_datapath_003             | Verifies HSIZE-dependent address stride: an incrementing INCR4     | PASS
+ 42 | test_main_datapath_004             | Verifies multi-transfer sequence data integrity: a four-beat       | PASS
+ 43 | test_main_datapath_005             | Verifies a single source-side write (HADDR=0x0000_1000,            | PASS
+ 44 | test_main_datapath_006             | Verifies a single source-side read (HADDR=0x0000_2000) translates  | PASS
+ 45 | test_main_datapath_007             | Drives four single-word AHB writes carrying the classic data       | PASS
+ 46 | test_main_datapath_008             | Drives three single-word AHB writes at the low, mid (MSB-set) and  | PASS
+ 47 | test_main_datapath_009             | Drives a single accepted AHB word write (HADDR=0x0000_1000,        | PASS
+ 48 | test_main_datapath_010             | Drives a single accepted AHB word write (HADDR=0x0000_1000,        | PASS
+ 49 | test_main_datapath_011             | Drives a single accepted AHB word READ (HADDR=0x0000_2000) and     | PASS
+ 50 | test_main_datapath_012             | Drives three consecutive accepted AHB word WRITES carrying the     | PASS
+ 51 | test_main_datapath_013             | Enables the bridge back-pressure timeout (CTRL=0x0000_00F1:        | PASS
+ 52 | test_main_datapath_014             | Verifies a single (non-sequence) HTRANS=NONSEQ word read returns   | PASS
+ 53 | test_main_datapath_015             | Drives a single accepted AHB word READ (HADDR=0x0000_2000) and     | PASS
+ 54 | test_main_datapath_016             | Drives three accepted AHB word READs (HADDR=0x0000_3000/3004/3008) | PASS
+ 55 | test_main_datapath_017             | Drives three accepted AHB word READs spanning the 32-bit address   | PASS
+ 56 | test_main_datapath_018             | Drives a single accepted AHB word READ to 0x0000_4000 whose APB    | PASS
+ 57 | test_protocol_001                  | Verifies that an accepted source-side (AHB) request is captured    | PASS
+ 58 | test_protocol_002                  | Verifies that the target active phase completes correctly when     | PASS
+ 59 | test_protocol_003                  | Verifies that during a target stall the ACTIVE-phase signals       | PASS
+ 60 | test_protocol_004                  | Verifies that on a read transfer HRDATA is not presented to the    | PASS
+ 61 | test_protocol_005                  | Verifies that a single target stall (PREADY=0) holds PENABLE       | PASS
+ 62 | test_protocol_006                  | Verifies that across SEVERAL consecutive PREADY=0 wait cycles the  | PASS
+ 63 | test_protocol_007                  | Verifies that HRDATA is not presented as valid until PREADY=1      | PASS
+ 64 | test_protocol_008                  | Verifies that the bridge correctly releases back-pressure after a  | PASS
+ 65 | test_protocol_009                  | Verifies the FSM IDLE-to-SETUP transition asserts PSEL with        | PASS
+ 66 | test_protocol_010                  | Verifies the FSM SETUP-to-ACTIVE transition asserts PENABLE while  | PASS
+ 67 | test_protocol_011                  | Verifies the FSM ACTIVE self-loop on PREADY=0 and the stability of | PASS
+ 68 | test_protocol_012                  | Verifies that handshake completion (PREADY=1) returns the bridge   | PASS
+ 69 | test_protocol_013                  | Verifies the complete state-machine sequence with correct          | PASS
+ 70 | test_protocol_014                  | Verifies HRESP=0 (OK) is asserted on the source side at completion | PASS
+ 71 | test_protocol_015                  | Verifies HRESP=1 (error) is driven on the source side when the     | PASS
+ 72 | test_protocol_016                  | Verifies HRESP=1 (error) is driven on the source side when a       | PASS
+ 73 | test_protocol_017                  | Verifies HRESP remains 0 (no premature/spurious error) throughout  | PASS
+ 74 | test_register_access_001           | Verifies the STATUS register reflects its specified reset state    | PASS
+ 75 | test_register_access_002           | Verifies PSLVERR and aggregated ERR_INT sticky bits in the STATUS  | PASS
+ 76 | test_register_access_003           | Verifies Write-1-to-Clear (W1C) semantics of the STATUS register:  | PASS
+ 77 | test_register_access_004           | Verifies the STATUS register READY (bit0) and BUSY (bit1) fields   | PASS
+ 78 | test_register_access_005           | Verifies the CTRL register powers up to its specified reset        | PASS
+ 79 | test_register_access_006           | Verifies the R/W fields in the CTRL register accept programmed     | PASS
+ 80 | test_register_access_007           | Verifies that writing the SOFT_RST bit in CTRL triggers a soft     | PASS
+ 81 | test_register_access_008           | Verifies that the CTRL reserved bits remain 0 and are not affected | PASS
+ 82 | test_register_access_009           | Verifies ERROR_ADDR captures the source-side address of an         | PASS
+ 83 | test_register_access_010           | Verifies ERROR_INFO captures direction/beat/error-class context    | PASS
+ 84 | test_register_access_011           | Verifies both captured debug registers (ERROR_ADDR @0x0000_0F08,   | PASS
+ 85 | test_register_access_012           | Verifies that attempted APB writes to the captured debug registers | PASS
+ 86 | test_register_access_013           | Verifies that a subsequent error overwrites the previously capt... | PASS
+ 87 | test_register_access_014           | Verifies the CTRL register (@0x0000_0F00) reset value and the      | PASS
+ 88 | test_register_access_015           | Verifies the STATUS register (@0x0000_0F04) reset value and the    | PASS
+ 89 | test_register_access_016           | Verifies the read-only debug registers ERROR_ADDR (@0x0000_0F08)   | PASS
+ 90 | test_register_access_017           | Verifies each defined register offset decodes to the correct       | PASS
+ 91 | test_reset_001                     | Verifies that asserting SOFT_RST while a transfer is active        | PASS
+ 92 | test_reset_002                     | Verifies that asserting SOFT_RST clears sticky STATUS error        | PASS
+ 93 | test_reset_003                     | Verifies that asserting SOFT_RST preserves the CTRL configuration  | PASS
+ 94 | test_reset_004                     | Verifies the distinction between SOFT_RST and a full HRESETn hard  | PASS
+ 95 | test_reset_005                     | Verifies that asserting a hard reset while the bridge is idle      | PASS
+ 96 | test_reset_006                     | Verifies that asserting a hard reset while a transfer is in the    | PASS
+ 97 | test_reset_007                     | Verifies that a hard reset clears the sticky STATUS error bits     | PASS
+ 98 | test_reset_008                     | Verifies the bridge is immediately ready to accept and complete a  | PASS
+
+================================================================================
+OVERALL: 98/98 PASSED
+FUNCTIONAL COVERAGE: 128/128 bins (100.0%), measured as the union of per-test
+                     hits across the full regression (coverage_report.txt).
+================================================================================
+
+COVERAGE SIGN-OFF WORK (this campaign):
+  1. The manual functional-coverage collector (env/ahb2apb_bridge_coverage.sv)
+     was wired into the env and package and adapted to the reworked seq_item
+     field names.  Baseline union coverage: 72.7% (93/128).
+  2. Coverage exposed a real monitor bug: the AHB monitor called
+     txn.post_randomize() after sampling the bus, and that seq_item's
+     post_randomize() force-resets burst/size/trans_type to SINGLE/WORD/NONSEQ.
+     It was overwriting the captured HBURST/HSIZE and hiding every burst/size
+     bin.  Removing the call (a monitor must report what it observed) recovered
+     the INCR4/HALFWORD bins -> 76.6% (98/128).
+  3. The remaining 30 open bins were reachable AHB_TXN/ERROR stimulus holes
+     (the suite only drove SINGLE/INCR4 bursts, WORD/HALFWORD sizes, and
+     JUST_ABOVE/FAR_ABOVE write errors).  Added one directed test,
+     test_coverage_closure_001, which drives every other HBURST encoding
+     (INCR, WRAP4/8/16, INCR8/16) as write+read, a BYTE transfer, an APB_HIGH
+     read, and the MID_RANGE / READ-direction decode errors -> 100% (128/128).
+
+NOTE: The RTL (rtl_Design/ahb2apb_bridge.sv) was previously aligned to
+ahb2apb_spec.pdf (CTRL/STATUS/ERROR_ADDR/ERROR_INFO layout, SOFT_RST, ENABLE
+gating, 2^(TIMEOUT_VAL+4) timeout, W1C STATUS).  All 98 tests pass against it.
+================================================================================

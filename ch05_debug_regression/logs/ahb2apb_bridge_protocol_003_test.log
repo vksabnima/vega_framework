@@ -1,0 +1,157 @@
+Reading pref.tcl
+
+# 2021.2
+
+# vsim -c -do "run -all; quit -f" tb_top_opt "+UVM_TESTNAME=ahb2apb_bridge_protocol_003_test" "+UVM_VERBOSITY=UVM_LOW" -suppress 8887 
+# Start time: 14:47:37 on Mar 09,2026
+# //  Questa Intel Starter FPGA Edition-64
+# //  Version 2021.2 win64 Apr 14 2021
+# //
+# //  Copyright 1991-2021 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  QuestaSim and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# Loading sv_std.std
+# Loading work.ahb_mst_if(fast)
+# Loading work.apb_slv_if(fast)
+# Loading work.reset_ctrl_if(fast)
+# Loading mtiUvm.uvm_pkg(fast)
+# Loading work.ahb2apb_bridge_pkg(fast)
+# Loading mtiUvm.questa_uvm_pkg(fast)
+# Loading work.tb_top(fast)
+# Loading work.reset_ctrl_if(fast__2)
+# Loading work.ahb_mst_if(fast__2)
+# Loading work.apb_slv_if(fast__2)
+# Loading work.ahb2apb_bridge(fast)
+# Loading C:/intelFPGA/22.1std/questa_fse/uvm-1.1d\win64\uvm_dpi.dll
+# run -all
+# ----------------------------------------------------------------
+# UVM-1.1d
+# (C) 2007-2013 Mentor Graphics Corporation
+# (C) 2007-2013 Cadence Design Systems, Inc.
+# (C) 2006-2013 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_MUST_HAVE_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# UVM_INFO @ 0: reporter [RNTST] Running test ahb2apb_bridge_protocol_003_test...
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_protocol_003_test.sv(54) @ 0: uvm_test_top [PROTOCOL_003] Scoreboard DISABLED â?? error response protocol test
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_protocol_003_test.sv(65) @ 0: uvm_test_top [PROTOCOL_003] === PROTOCOL_003 TEST START ===
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_protocol_003_test.sv(73) @ 150000: uvm_test_top [PROTOCOL_003] APB driver pready_delay set to 20, pslverr_inject=0
+# UVM_INFO ../../ch04_tests/sequences/ahb_mst_protocol_003_seq.sv(20) @ 150000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_protocol_003_seq] ===== TEST_PROTOCOL_003: ahb_two_cycle_error_response =====
+# UVM_INFO sequences/ahb_mst_base_seq.sv(156) @ 195000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_protocol_003_seq] ADDR_ERROR_HRESP PASS: HRESP=1
+# UVM_INFO sequences/ahb_mst_base_seq.sv(156) @ 485000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_protocol_003_seq] TIMEOUT_ERROR_HRESP PASS: HRESP=1
+# UVM_INFO ../../ch04_tests/sequences/ahb_mst_protocol_003_seq.sv(51) @ 535000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_protocol_003_seq] TIMEOUT_STATUS PASS: STATUS[6]=1 (STATUS=0x00000051)
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 1175000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_protocol_003_seq] RECOVERY_AFTER_ERRORS PASS: [0x0000c000] = 0xc0decafe
+# UVM_INFO sequences/ahb_mst_base_seq.sv(201) @ 1175000: uvm_test_top.env.ahb_agt.sqr@@seq [ahb_mst_protocol_003_seq] TEST_PROTOCOL_003 SUMMARY: 4 PASS, 0 FAIL
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_protocol_003_test.sv(80) @ 1375000: uvm_test_top [PROTOCOL_003] === PROTOCOL_003 TEST COMPLETE ===
+# UVM_INFO verilog_src/uvm-1.1d/src/base/uvm_objection.svh(1267) @ 1375000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(218) @ 1375000: uvm_test_top.env.scb [SCB] Scoreboard disabled â?? skipping check_phase
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(476) @ 1375000: uvm_test_top.env.cov [COV] ========== FUNCTIONAL COVERAGE REPORT ==========
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(477) @ 1375000: uvm_test_top.env.cov [COV]   AHB_TXN          : 35.6%  (21/59 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(479) @ 1375000: uvm_test_top.env.cov [COV]   APB_TXN          : 54.5%  (6/11 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(481) @ 1375000: uvm_test_top.env.cov [COV]   REGISTER_ACCESS  : 58.3%  (7/12 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(483) @ 1375000: uvm_test_top.env.cov [COV]   ERROR_SCENARIOS  : 27.3%  (3/11 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(485) @ 1375000: uvm_test_top.env.cov [COV]   AHB_PROTOCOL     : 100.0%  (13/13 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(487) @ 1375000: uvm_test_top.env.cov [COV]   APB_PROTOCOL     : 86.4%  (19/22 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(489) @ 1375000: uvm_test_top.env.cov [COV]   ----------------------------------------
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(490) @ 1375000: uvm_test_top.env.cov [COV]   OVERALL          : 53.9%  (69/128 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(492) @ 1375000: uvm_test_top.env.cov [COV] ================================================
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(535) @ 1375000: uvm_test_top.env.cov [COV] UNCOVERED BINS (59):
+#     AHB_TXN.haddr_range.APB_LOW
+#     AHB_TXN.haddr_range.APB_MID
+#     AHB_TXN.hsize.BYTE
+#     AHB_TXN.hsize.HALFWORD
+#     AHB_TXN.hburst.INCR
+#     AHB_TXN.hburst.WRAP4
+#     AHB_TXN.hburst.INCR4
+#     AHB_TXN.hburst.WRAP8
+#     AHB_TXN.hburst.INCR8
+#     AHB_TXN.hburst.WRAP16
+#     AHB_TXN.hburst.INCR16
+#     AHB_TXN.addr_x_write.APB_LOW.WRITE
+#     AHB_TXN.addr_x_write.APB_LOW.READ
+#     AHB_TXN.addr_x_write.APB_MID.WRITE
+#     AHB_TXN.addr_x_write.APB_MID.READ
+#     AHB_TXN.addr_x_write.OUT_OF_RANGE.READ
+#     AHB_TXN.burst_x_write.INCR.WRITE
+#     AHB_TXN.burst_x_write.INCR.READ
+#     AHB_TXN.burst_x_write.WRAP4.WRITE
+#     AHB_TXN.burst_x_write.WRAP4.READ
+#     AHB_TXN.burst_x_write.INCR4.WRITE
+#     AHB_TXN.burst_x_write.INCR4.READ
+#     AHB_TXN.burst_x_write.WRAP8.WRITE
+#     AHB_TXN.burst_x_write.WRAP8.READ
+#     AHB_TXN.burst_x_write.INCR8.WRITE
+#     AHB_TXN.burst_x_write.INCR8.READ
+#     AHB_TXN.burst_x_write.WRAP16.WRITE
+#     AHB_TXN.burst_x_write.WRAP16.READ
+#     AHB_TXN.burst_x_write.INCR16.WRITE
+#     AHB_TXN.burst_x_write.INCR16.READ
+#     AHB_TXN.write_x_resp.READ.ERROR
+#     AHB_TXN.burst_x_resp.INCR.OKAY
+#     AHB_TXN.burst_x_resp.WRAP4.OKAY
+#     AHB_TXN.burst_x_resp.INCR4.OKAY
+#     AHB_TXN.burst_x_resp.WRAP8.OKAY
+#     AHB_TXN.burst_x_resp.INCR8.OKAY
+#     AHB_TXN.burst_x_resp.WRAP16.OKAY
+#     AHB_TXN.burst_x_resp.INCR16.OKAY
+#     APB_TXN.paddr_range.APB_LOW
+#     APB_TXN.paddr_range.APB_MID
+#     APB_TXN.pslverr.ERROR
+#     APB_TXN.pwrite_x_pslverr.WRITE.ERROR
+#     APB_TXN.pwrite_x_pslverr.READ.ERROR
+#     REG.offset.ERROR_ADDR
+#     REG.offset.ERROR_INFO
+#     REG.offset_x_rw.CTRL.READ
+#     REG.offset_x_rw.ERROR_ADDR.READ
+#     REG.offset_x_rw.ERROR_INFO.READ
+#     ERR.direction.READ
+#     ERR.addr.JUST_ABOVE
+#     ERR.addr.MID_RANGE
+#     ERR.dir_x_addr.WRITE.JUST_ABOVE
+#     ERR.dir_x_addr.WRITE.MID_RANGE
+#     ERR.dir_x_addr.READ.JUST_ABOVE
+#     ERR.dir_x_addr.READ.MID_RANGE
+#     ERR.dir_x_addr.READ.FAR_ABOVE
+#     APB_PROT.pslverr.ERROR
+#     APB_PROT.pwrite_x_pslverr.WRITE.ERROR
+#     APB_PROT.pwrite_x_pslverr.READ.ERROR
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_protocol_003_test.sv(95) @ 1375000: uvm_test_top [PROTOCOL_003] ========== TEST PASSED ==========
+# 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :   25
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [COV]    11
+# [PROTOCOL_003]     5
+# [RNTST]     1
+# [SCB]     1
+# [TEST_DONE]     1
+# [ahb_mst_protocol_003_seq]     6
+# ** Note: $finish    : C:/intelFPGA/22.1std/questa_fse/win64/../verilog_src/uvm-1.1d/src/base/uvm_root.svh(430)
+#    Time: 1375 ns  Iteration: 54  Instance: /tb_top
+# End time: 14:47:39 on Mar 09,2026, Elapsed time: 0:00:02
+# Errors: 0, Warnings: 0

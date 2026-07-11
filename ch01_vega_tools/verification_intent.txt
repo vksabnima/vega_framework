@@ -1,0 +1,76 @@
+# verification_intent.txt
+# Design  : ahb2apb_bridge
+# Engineer: Vikash Kumar
+# Date    : 2026-03-04
+#
+# This file tells the LLM what to verify — in plain English.
+# No signal names. No SystemVerilog. No UVM knowledge required.
+# The LLM reads this alongside the spec and IP-XACT to implement
+# the driver, monitor, and scoreboard.
+#
+# Format: four sections — DRIVE, OBSERVE, CHECK, OUT OF SCOPE
+# Keep each section focused. The LLM implements exactly what you write.
+
+DRIVE:
+  The AHB master agent should drive a mix of read and write
+  transactions into the bridge. Use random addresses within the
+  valid APB address range. Use random data values for writes.
+  Keep transactions simple — single transfers only, no bursts.
+
+  The APB slave agent should behave as a simple memory slave.
+  Respond to every APB transaction with PREADY asserted after
+  one clock cycle. No error responses for this bringup test.
+  The slave should store written data and return it on reads
+  using an associative array indexed by address.
+
+OBSERVE:
+  Monitor every AHB transaction as it enters the bridge.
+  Capture address, direction (read or write), write data,
+  read data, and error response at the end of each AHB transfer
+  — after the bridge has indicated it is ready.
+
+  Monitor every APB transaction as it exits the bridge.
+  Capture address, direction, write data, read data, and
+  slave error signal when the APB transfer completes
+  — when PREADY is asserted.
+
+CHECK:
+  For every AHB transaction that enters the bridge there must
+  be exactly one corresponding APB transaction that exits.
+  Compare the two transactions on the following:
+
+  VG1 — Address must be identical on both sides. Whatever
+        address was driven on AHB must appear on APB unchanged.
+
+  VG2 — Write data must not be corrupted. Data driven on the
+        AHB write data bus must arrive at APB write data unchanged.
+
+  VG3 — Read data must return intact. Data provided by the APB
+        slave must reach the AHB master without modification.
+
+  VG4 — Transfer direction must be preserved. A write on AHB
+        must produce a write on APB. A read must produce a read.
+        The direction signal must never flip through the bridge.
+
+  VG5 — Error responses must propagate. If the APB slave signals
+        an error, that error must be visible to the AHB master.
+        For this bringup test no errors are injected — verify
+        the no-error case passes cleanly.
+
+  VG6 — No transactions lost or duplicated. The number of
+        transactions observed on AHB must equal the number
+        observed on APB. At end of simulation both monitor
+        queues must be empty — no unmatched transactions.
+
+OUT OF SCOPE:
+  The following are intentionally excluded from this bringup test.
+  They will be addressed in subsequent test scenarios in Chapter 4.
+
+  - AHB burst transfers (INCR, WRAP)
+  - APB error injection (PSLVERR = 1)
+  - Back-to-back transfers without idle cycles
+  - Address boundary crossing
+  - Multiple outstanding transactions
+  - Reset during active transfer
+  - Coverage collection
+  - Assertions

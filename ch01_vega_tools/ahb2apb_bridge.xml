@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ahb2apb_bridge.xml — IP-XACT Component Description
+  Generated from RTL: ahb2apb_bridge.sv
+  Spec: ahb2apb_spec.pdf — Educational Bus Bridge Model for
+        Verification (AHB-like to APB-like Example),
+        Document ID: EDU-BRIDGE-MODEL-001, Version 1.1
+  Author: Vikash Kumar
+  Description: AHB slave to APB master protocol bridge
+    - Single clock domain (HCLK = PCLK)
+    - Burst support: SINGLE, INCR, INCR4/8/16, WRAP4/8/16
+    - Register interface: CTRL, STATUS, ERROR_ADDR, ERROR_INFO
+    - Error handling: PSLVERR propagation, address decode error, timeout
+-->
+<component xmlns="spirit://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009"
+           xmlns:spirit="spirit://www.spiritconsortium.org/XMLSchema/SPIRIT/1685-2009"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <!-- =========================================================== -->
+  <!-- Component Identity                                           -->
+  <!-- =========================================================== -->
+  <vendor>arm</vendor>
+  <library>amba</library>
+  <name>ahb2apb_bridge</name>
+  <version>1.0</version>
+
+  <!-- =========================================================== -->
+  <!-- Bus Interfaces                                               -->
+  <!-- =========================================================== -->
+  <busInterfaces>
+
+    <busInterface>
+      <name>AHB_SLAVE</name>
+      <busType spirit:vendor="arm" spirit:library="amba"
+               spirit:name="AHB" spirit:version="3.0"/>
+      <slave/>
+    </busInterface>
+
+    <busInterface>
+      <name>APB_MASTER</name>
+      <busType spirit:vendor="arm" spirit:library="amba"
+               spirit:name="APB" spirit:version="2.0"/>
+      <master/>
+    </busInterface>
+
+  </busInterfaces>
+
+  <!-- =========================================================== -->
+  <!-- Model — Parameters and Ports                                 -->
+  <!-- =========================================================== -->
+  <model>
+
+    <modelParameters>
+
+      <modelParameter spirit:dataType="int">
+        <name>ADDR_WIDTH</name>
+        <value>32</value>
+        <description>Address bus width in bits</description>
+      </modelParameter>
+
+      <modelParameter spirit:dataType="int">
+        <name>DATA_WIDTH</name>
+        <value>32</value>
+        <description>Data bus width in bits</description>
+      </modelParameter>
+
+      <modelParameter spirit:dataType="longint">
+        <name>APB_ADDR_START</name>
+        <value>0</value>
+        <description>Start of APB address window (32h0000_0000)</description>
+      </modelParameter>
+
+      <modelParameter spirit:dataType="longint">
+        <name>APB_ADDR_END</name>
+        <value>65535</value>
+        <description>End of APB address window (32h0000_FFFF)</description>
+      </modelParameter>
+
+      <modelParameter spirit:dataType="longint">
+        <name>REG_BASE</name>
+        <value>3840</value>
+        <description>Internal register block base address (32h0000_0F00)</description>
+      </modelParameter>
+
+    </modelParameters>
+
+    <!-- ========================================================= -->
+    <!-- Ports — derived from RTL module declaration                -->
+    <!-- ========================================================= -->
+    <ports>
+
+      <!-- ── Clock and Reset ─────────────────────────────────── -->
+
+      <port>
+        <name>HCLK</name>
+        <wire>
+          <direction>in</direction>
+          <description>
+            Unified AHB/APB clock. Single clock domain — PCLK is
+            internally tied to HCLK inside the bridge.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HRESETn</name>
+        <wire>
+          <direction>in</direction>
+          <description>
+            Active-low synchronous reset. All outputs deasserted.
+            HREADY_OUT driven high after reset release.
+          </description>
+        </wire>
+      </port>
+
+      <!-- ── AHB Slave Interface — Spec Table 2 ──────────────── -->
+
+      <port>
+        <name>HADDR</name>
+        <wire>
+          <direction>in</direction>
+          <vector>
+            <left>31</left>
+            <right>0</right>
+          </vector>
+          <description>
+            AHB transfer address. Valid in address phase.
+            Bridge latches on rising HCLK when HREADY_IN=1 and
+            HSEL=1 and HTRANS=NONSEQ or SEQ.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HTRANS</name>
+        <wire>
+          <direction>in</direction>
+          <vector>
+            <left>1</left>
+            <right>0</right>
+          </vector>
+          <description>
+            AHB transfer type.
+            00=IDLE  01=BUSY  10=NONSEQ  11=SEQ.
+            Bridge only responds to NONSEQ and SEQ.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HWRITE</name>
+        <wire>
+          <direction>in</direction>
+          <description>
+            AHB transfer direction. 1=write 0=read.
+            Latched with HADDR. Maps directly to PWRITE.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HSIZE</name>
+        <wire>
+          <direction>in</direction>
+          <vector>
+            <left>2</left>
+            <right>0</right>
+          </vector>
+          <description>
+            AHB transfer size. 000=byte 001=halfword 010=word.
+            Latched with HADDR.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HBURST</name>
+        <wire>
+          <direction>in</direction>
+          <vector>
+            <left>2</left>
+            <right>0</right>
+          </vector>
+          <description>
+            AHB burst type.
+            000=SINGLE 001=INCR 010=WRAP4 011=INCR4
+            100=WRAP8  101=INCR8 110=WRAP16 111=INCR16.
+            Latched with HADDR.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HWDATA</name>
+        <wire>
+          <direction>in</direction>
+          <vector>
+            <left>31</left>
+            <right>0</right>
+          </vector>
+          <description>
+            AHB write data. Valid one cycle after address phase
+            (data phase). Captured into PWDATA during ST_APB_SETUP.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HSEL</name>
+        <wire>
+          <direction>in</direction>
+          <description>
+            AHB slave select. This bridge is the target when HSEL=1.
+            Must be asserted with HTRANS=NONSEQ to start a transfer.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HREADY_IN</name>
+        <wire>
+          <direction>in</direction>
+          <description>
+            AHB bus ready input from previous slave on shared bus.
+            Bridge samples address phase only when HREADY_IN=1.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HRDATA</name>
+        <wire>
+          <direction>out</direction>
+          <vector>
+            <left>31</left>
+            <right>0</right>
+          </vector>
+          <description>
+            AHB read data. Driven from PRDATA when PREADY=1 and
+            HWRITE=0. Driven from register file for REG_READ state.
+            Zero for write transactions.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HREADY_OUT</name>
+        <wire>
+          <direction>out</direction>
+          <description>
+            AHB slave ready. 0=wait (bridge busy) 1=transfer complete.
+            Deasserted in ST_APB_SETUP and ST_APB_ACCESS until PREADY.
+            Deasserted in ST_ERROR first cycle (two-cycle error response).
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>HRESP</name>
+        <wire>
+          <direction>out</direction>
+          <description>
+            AHB response. 0=OKAY 1=ERROR.
+            Two-cycle error: HREADY_OUT=0+HRESP=1 (ST_ERROR),
+            then HREADY_OUT=1+HRESP=1 (ST_ERROR_2).
+            Driven on PSLVERR, address decode error, or timeout.
+          </description>
+        </wire>
+      </port>
+
+      <!-- ── APB Master Interface — Spec Table 4 ─────────────── -->
+
+      <port>
+        <name>PADDR</name>
+        <wire>
+          <direction>out</direction>
+          <vector>
+            <left>31</left>
+            <right>0</right>
+          </vector>
+          <description>
+            APB transfer address. Driven from haddr_lat in ST_APB_SETUP.
+            Held stable through ST_APB_ACCESS.
+            Must equal HADDR for all non-register transactions (VG1).
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>PSEL</name>
+        <wire>
+          <direction>out</direction>
+          <description>
+            APB slave select. Asserted in ST_APB_SETUP (SETUP phase).
+            Held asserted in ST_APB_ACCESS (ACCESS phase).
+            Deasserted in all other states.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>PENABLE</name>
+        <wire>
+          <direction>out</direction>
+          <description>
+            APB enable. Deasserted in SETUP phase (ST_APB_SETUP).
+            Asserted in ACCESS phase (ST_APB_ACCESS) only.
+            APB slave samples transfer when PSEL=1 and PENABLE=1.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>PWRITE</name>
+        <wire>
+          <direction>out</direction>
+          <description>
+            APB transfer direction. 1=write 0=read.
+            Directly mirrors hwrite_lat (latched HWRITE).
+            Must equal HWRITE for all transactions (VG4).
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>PWDATA</name>
+        <wire>
+          <direction>out</direction>
+          <vector>
+            <left>31</left>
+            <right>0</right>
+          </vector>
+          <description>
+            APB write data. Driven from HWDATA in ST_APB_SETUP.
+            Must equal HWDATA for write transactions (VG2).
+            Zero for read transactions.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>PRDATA</name>
+        <wire>
+          <direction>in</direction>
+          <vector>
+            <left>31</left>
+            <right>0</right>
+          </vector>
+          <description>
+            APB read data from slave. Captured when PREADY=1 in
+            ST_APB_ACCESS. Forwarded to HRDATA for read transactions (VG3).
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>PREADY</name>
+        <wire>
+          <direction>in</direction>
+          <description>
+            APB slave ready. 0=insert wait states 1=transfer complete.
+            Bridge holds HREADY_OUT=0 while waiting for PREADY=1.
+            Sampled in ST_APB_ACCESS.
+          </description>
+        </wire>
+      </port>
+
+      <port>
+        <name>PSLVERR</name>
+        <wire>
+          <direction>in</direction>
+          <description>
+            APB slave error. Sampled when PREADY=1 in ST_APB_ACCESS.
+            1=error — bridge transitions to ST_ERROR, drives HRESP=ERROR
+            with two-cycle AHB error response (VG5).
+          </description>
+        </wire>
+      </port>
+
+    </ports>
+  </model>
+
+  <!-- =========================================================== -->
+  <!-- Register Map                                                 -->
+  <!-- =========================================================== -->
+  <memoryMaps>
+    <memoryMap>
+      <name>BRIDGE_REGS</name>
+      <description>
+        Internal bridge register block.
+        Base address = REG_BASE parameter (default 0x0000_0F00).
+        Accessible via AHB slave interface as normal read/write transactions.
+        Address range: REG_BASE to REG_BASE+0x0F (16 bytes, 4 registers).
+      </description>
+
+      <addressBlock>
+        <name>CTRL_REGS</name>
+        <baseAddress>0x0F00</baseAddress>
+        <range>16</range>
+        <width>32</width>
+
+        <register>
+          <name>CTRL</name>
+          <addressOffset>0x00</addressOffset>
+          <size>32</size>
+          <access>read-write</access>
+          <resetValue>0x00000100</resetValue>
+          <description>
+            Control register. Reset value 0x100 = timeout disabled,
+            timeout_val=256 cycles.
+          </description>
+          <field>
+            <name>TIMEOUT_EN</name>
+            <bitOffset>0</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-write</access>
+            <description>Timeout enable. 1=count APB wait cycles 0=disabled</description>
+          </field>
+          <field>
+            <name>TIMEOUT_VAL</name>
+            <bitOffset>16</bitOffset>
+            <bitWidth>16</bitWidth>
+            <access>read-write</access>
+            <description>
+              Timeout threshold in HCLK cycles.
+              Bridge drives ST_ERROR when timeout_cnt reaches this value.
+              Default 256 cycles.
+            </description>
+          </field>
+        </register>
+
+        <register>
+          <name>STATUS</name>
+          <addressOffset>0x04</addressOffset>
+          <size>32</size>
+          <access>read-only</access>
+          <resetValue>0x00000000</resetValue>
+          <description>Status register. Read-only. Reflects current bridge state.</description>
+          <field>
+            <name>BUSY</name>
+            <bitOffset>0</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-only</access>
+            <description>1=bridge not in IDLE state</description>
+          </field>
+          <field>
+            <name>ERROR</name>
+            <bitOffset>1</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-only</access>
+            <description>1=APB error or address decode error active</description>
+          </field>
+          <field>
+            <name>TIMEOUT</name>
+            <bitOffset>2</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-only</access>
+            <description>1=timeout event active</description>
+          </field>
+        </register>
+
+        <register>
+          <name>ERROR_ADDR</name>
+          <addressOffset>0x08</addressOffset>
+          <size>32</size>
+          <access>read-only</access>
+          <resetValue>0x00000000</resetValue>
+          <description>
+            Address captured on last error event.
+            Updated on: PSLVERR=1, address decode error, or timeout.
+          </description>
+          <field>
+            <name>ADDR</name>
+            <bitOffset>0</bitOffset>
+            <bitWidth>32</bitWidth>
+            <access>read-only</access>
+          </field>
+        </register>
+
+        <register>
+          <name>ERROR_INFO</name>
+          <addressOffset>0x0C</addressOffset>
+          <size>32</size>
+          <access>read-only</access>
+          <resetValue>0x00000000</resetValue>
+          <description>
+            Error classification for last error event.
+            Indicates error type and transfer direction.
+          </description>
+          <field>
+            <name>PSLVERR</name>
+            <bitOffset>0</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-only</access>
+            <description>1=error source was APB slave error (PSLVERR=1)</description>
+          </field>
+          <field>
+            <name>ADDR_DECODE</name>
+            <bitOffset>1</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-only</access>
+            <description>1=error source was address outside APB range and REG range</description>
+          </field>
+          <field>
+            <name>TIMEOUT_ERR</name>
+            <bitOffset>2</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-only</access>
+            <description>1=error source was APB timeout (PREADY never asserted)</description>
+          </field>
+          <field>
+            <name>WRITE</name>
+            <bitOffset>3</bitOffset>
+            <bitWidth>1</bitWidth>
+            <access>read-only</access>
+            <description>1=error occurred during a write transaction</description>
+          </field>
+        </register>
+
+      </addressBlock>
+    </memoryMap>
+  </memoryMaps>
+
+  <!-- =========================================================== -->
+  <!-- Description                                                  -->
+  <!-- =========================================================== -->
+  <description>
+    AHB slave to APB master protocol bridge.
+    Converts AHB transactions to APB transactions in a single clock domain.
+    FSM: IDLE, APB_SETUP, APB_ACCESS, REG_READ, ERROR, ERROR_2.
+    Address decode: APB range (0x0000_0000 to 0x0000_FFFF excluding REG_BASE),
+    REG range (REG_BASE to REG_BASE+0x0F), all others cause address decode error.
+    Error response: two-cycle AHB error (HREADY_OUT=0+HRESP=1, then HREADY_OUT=1+HRESP=1).
+    AHB pipeline: address phase latched when HREADY_IN=1 and HSEL=1 and HTRANS=NONSEQ/SEQ.
+  </description>
+
+</component>

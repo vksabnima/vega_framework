@@ -1,0 +1,247 @@
+Reading pref.tcl
+
+# 2021.2
+
+# vsim -c -do "run -all; quit -f" tb_top_opt "+UVM_TESTNAME=ahb2apb_bridge_stress_001_test" "+UVM_VERBOSITY=UVM_LOW" -suppress 8887 
+# Start time: 14:48:58 on Mar 09,2026
+# //  Questa Intel Starter FPGA Edition-64
+# //  Version 2021.2 win64 Apr 14 2021
+# //
+# //  Copyright 1991-2021 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  QuestaSim and its associated documentation contain trade
+# //  secrets and commercial or financial information that are the property of
+# //  Mentor Graphics Corporation and are privileged, confidential,
+# //  and exempt from disclosure under the Freedom of Information Act,
+# //  5 U.S.C. Section 552. Furthermore, this information
+# //  is prohibited from disclosure under the Trade Secrets Act,
+# //  18 U.S.C. Section 1905.
+# //
+# Loading sv_std.std
+# Loading work.ahb_mst_if(fast)
+# Loading work.apb_slv_if(fast)
+# Loading work.reset_ctrl_if(fast)
+# Loading mtiUvm.uvm_pkg(fast)
+# Loading work.ahb2apb_bridge_pkg(fast)
+# Loading mtiUvm.questa_uvm_pkg(fast)
+# Loading work.tb_top(fast)
+# Loading work.reset_ctrl_if(fast__2)
+# Loading work.ahb_mst_if(fast__2)
+# Loading work.apb_slv_if(fast__2)
+# Loading work.ahb2apb_bridge(fast)
+# Loading C:/intelFPGA/22.1std/questa_fse/uvm-1.1d\win64\uvm_dpi.dll
+# run -all
+# ----------------------------------------------------------------
+# UVM-1.1d
+# (C) 2007-2013 Mentor Graphics Corporation
+# (C) 2007-2013 Cadence Design Systems, Inc.
+# (C) 2006-2013 Synopsys, Inc.
+# (C) 2011-2013 Cypress Semiconductor Corp.
+# ----------------------------------------------------------------
+# 
+#   ***********       IMPORTANT RELEASE NOTES         ************
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_NO_DEPRECATED undefined.
+#   See http://www.eda.org/svdb/view.php?id=3313 for more details.
+# 
+#   You are using a version of the UVM library that has been compiled
+#   with `UVM_OBJECT_MUST_HAVE_CONSTRUCTOR undefined.
+#   See http://www.eda.org/svdb/view.php?id=3770 for more details.
+# 
+#       (Specify +UVM_NO_RELNOTES to turn off this notice)
+# 
+# UVM_INFO @ 0: reporter [RNTST] Running test ahb2apb_bridge_stress_001_test...
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_stress_001_test.sv(48) @ 0: uvm_test_top [STRESS_001] Scoreboard ENABLED (skip_error_txns=1)
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_stress_001_test.sv(56) @ 0: uvm_test_top [STRESS_001] === TEST_STRESS_001 START ===
+# UVM_INFO ../../ch04_tests/sequences/ahb_mst_stress_001_seq.sv(19) @ 150000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] ===== TEST_STRESS_001: back_to_back_stress_test =====
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6195000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[0] PASS: [0x00001000] = 0x00000000
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6255000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[1] PASS: [0x00001004] = 0x00000001
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6315000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[2] PASS: [0x00001008] = 0x00000002
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6375000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[3] PASS: [0x0000100c] = 0x00000003
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6435000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[4] PASS: [0x00001010] = 0x00000004
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6495000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[5] PASS: [0x00001014] = 0x00000005
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6555000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[6] PASS: [0x00001018] = 0x00000006
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6615000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[7] PASS: [0x0000101c] = 0x00000007
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6675000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[8] PASS: [0x00001020] = 0x00000008
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6735000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[9] PASS: [0x00001024] = 0x00000009
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6795000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[10] PASS: [0x00001028] = 0x0000000a
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6855000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[11] PASS: [0x0000102c] = 0x0000000b
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6915000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[12] PASS: [0x00001030] = 0x0000000c
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 6975000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[13] PASS: [0x00001034] = 0x0000000d
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7035000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[14] PASS: [0x00001038] = 0x0000000e
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7095000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[15] PASS: [0x0000103c] = 0x0000000f
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7155000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[16] PASS: [0x00001040] = 0x00000010
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7215000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[17] PASS: [0x00001044] = 0x00000011
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7275000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[18] PASS: [0x00001048] = 0x00000012
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7335000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[19] PASS: [0x0000104c] = 0x00000013
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7395000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[20] PASS: [0x00001050] = 0x00000014
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7455000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[21] PASS: [0x00001054] = 0x00000015
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7515000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[22] PASS: [0x00001058] = 0x00000016
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7575000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[23] PASS: [0x0000105c] = 0x00000017
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7635000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[24] PASS: [0x00001060] = 0x00000018
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7695000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[25] PASS: [0x00001064] = 0x00000019
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7755000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[26] PASS: [0x00001068] = 0x0000001a
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7815000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[27] PASS: [0x0000106c] = 0x0000001b
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7875000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[28] PASS: [0x00001070] = 0x0000001c
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7935000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[29] PASS: [0x00001074] = 0x0000001d
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 7995000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[30] PASS: [0x00001078] = 0x0000001e
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8055000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[31] PASS: [0x0000107c] = 0x0000001f
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8115000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[32] PASS: [0x00001080] = 0x00000020
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8175000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[33] PASS: [0x00001084] = 0x00000021
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8235000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[34] PASS: [0x00001088] = 0x00000022
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8295000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[35] PASS: [0x0000108c] = 0x00000023
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8355000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[36] PASS: [0x00001090] = 0x00000024
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8415000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[37] PASS: [0x00001094] = 0x00000025
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8475000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[38] PASS: [0x00001098] = 0x00000026
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8535000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[39] PASS: [0x0000109c] = 0x00000027
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8595000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[40] PASS: [0x000010a0] = 0x00000028
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8655000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[41] PASS: [0x000010a4] = 0x00000029
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8715000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[42] PASS: [0x000010a8] = 0x0000002a
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8775000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[43] PASS: [0x000010ac] = 0x0000002b
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8835000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[44] PASS: [0x000010b0] = 0x0000002c
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8895000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[45] PASS: [0x000010b4] = 0x0000002d
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 8955000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[46] PASS: [0x000010b8] = 0x0000002e
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9015000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[47] PASS: [0x000010bc] = 0x0000002f
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9075000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[48] PASS: [0x000010c0] = 0x00000030
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9135000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[49] PASS: [0x000010c4] = 0x00000031
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9195000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[50] PASS: [0x000010c8] = 0x00000032
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9255000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[51] PASS: [0x000010cc] = 0x00000033
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9315000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[52] PASS: [0x000010d0] = 0x00000034
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9375000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[53] PASS: [0x000010d4] = 0x00000035
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9435000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[54] PASS: [0x000010d8] = 0x00000036
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9495000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[55] PASS: [0x000010dc] = 0x00000037
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9555000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[56] PASS: [0x000010e0] = 0x00000038
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9615000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[57] PASS: [0x000010e4] = 0x00000039
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9675000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[58] PASS: [0x000010e8] = 0x0000003a
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9735000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[59] PASS: [0x000010ec] = 0x0000003b
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9795000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[60] PASS: [0x000010f0] = 0x0000003c
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9855000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[61] PASS: [0x000010f4] = 0x0000003d
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9915000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[62] PASS: [0x000010f8] = 0x0000003e
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 9975000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[63] PASS: [0x000010fc] = 0x0000003f
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10035000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[64] PASS: [0x00001100] = 0x00000040
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10095000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[65] PASS: [0x00001104] = 0x00000041
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10155000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[66] PASS: [0x00001108] = 0x00000042
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10215000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[67] PASS: [0x0000110c] = 0x00000043
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10275000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[68] PASS: [0x00001110] = 0x00000044
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10335000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[69] PASS: [0x00001114] = 0x00000045
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10395000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[70] PASS: [0x00001118] = 0x00000046
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10455000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[71] PASS: [0x0000111c] = 0x00000047
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10515000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[72] PASS: [0x00001120] = 0x00000048
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10575000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[73] PASS: [0x00001124] = 0x00000049
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10635000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[74] PASS: [0x00001128] = 0x0000004a
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10695000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[75] PASS: [0x0000112c] = 0x0000004b
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10755000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[76] PASS: [0x00001130] = 0x0000004c
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10815000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[77] PASS: [0x00001134] = 0x0000004d
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10875000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[78] PASS: [0x00001138] = 0x0000004e
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10935000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[79] PASS: [0x0000113c] = 0x0000004f
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 10995000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[80] PASS: [0x00001140] = 0x00000050
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11055000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[81] PASS: [0x00001144] = 0x00000051
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11115000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[82] PASS: [0x00001148] = 0x00000052
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11175000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[83] PASS: [0x0000114c] = 0x00000053
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11235000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[84] PASS: [0x00001150] = 0x00000054
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11295000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[85] PASS: [0x00001154] = 0x00000055
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11355000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[86] PASS: [0x00001158] = 0x00000056
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11415000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[87] PASS: [0x0000115c] = 0x00000057
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11475000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[88] PASS: [0x00001160] = 0x00000058
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11535000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[89] PASS: [0x00001164] = 0x00000059
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11595000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[90] PASS: [0x00001168] = 0x0000005a
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11655000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[91] PASS: [0x0000116c] = 0x0000005b
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11715000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[92] PASS: [0x00001170] = 0x0000005c
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11775000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[93] PASS: [0x00001174] = 0x0000005d
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11835000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[94] PASS: [0x00001178] = 0x0000005e
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11895000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[95] PASS: [0x0000117c] = 0x0000005f
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 11955000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[96] PASS: [0x00001180] = 0x00000060
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 12015000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[97] PASS: [0x00001184] = 0x00000061
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 12075000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[98] PASS: [0x00001188] = 0x00000062
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 12135000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_RB[99] PASS: [0x0000118c] = 0x00000063
+# UVM_INFO sequences/ahb_mst_base_seq.sv(114) @ 12255000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] STRESS_001_FINAL PASS: [0x00009000] = 0xfeedface
+# UVM_INFO sequences/ahb_mst_base_seq.sv(201) @ 13455000: uvm_test_top.env.ahb_agt.sqr@@ahb_seq [ahb_mst_stress_001_seq] TEST_STRESS_001 SUMMARY: 101 PASS, 0 FAIL
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_stress_001_test.sv(67) @ 13955000: uvm_test_top [STRESS_001] === TEST_STRESS_001 COMPLETE ===
+# UVM_INFO verilog_src/uvm-1.1d/src/base/uvm_objection.svh(1267) @ 13955000: reporter [TEST_DONE] 'run' phase is ready to proceed to the 'extract' phase
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(222) @ 13955000: uvm_test_top.env.scb [SCB] ========== SCOREBOARD CHECK PHASE ==========
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(227) @ 13955000: uvm_test_top.env.scb [SCB_VG6] PASS: AHB=220 APB=220 transactions, queues empty
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(236) @ 13955000: uvm_test_top.env.scb [SCB] ---------- Verification Goal Summary ----------
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(237) @ 13955000: uvm_test_top.env.scb [SCB] VG1 (Address)   : PASS=220 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(238) @ 13955000: uvm_test_top.env.scb [SCB] VG2 (Write Data) : PASS=110 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(239) @ 13955000: uvm_test_top.env.scb [SCB] VG3 (Read Data)  : PASS=110 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(240) @ 13955000: uvm_test_top.env.scb [SCB] VG4 (Direction)  : PASS=220 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(241) @ 13955000: uvm_test_top.env.scb [SCB] VG5 (Error Prop) : PASS=220 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(242) @ 13955000: uvm_test_top.env.scb [SCB] VG6 (Count Match): PASS=1 FAIL=0
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(243) @ 13955000: uvm_test_top.env.scb [SCB] ------------------------------------------------
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(476) @ 13955000: uvm_test_top.env.cov [COV] ========== FUNCTIONAL COVERAGE REPORT ==========
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(477) @ 13955000: uvm_test_top.env.cov [COV]   AHB_TXN          : 86.4%  (51/59 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(479) @ 13955000: uvm_test_top.env.cov [COV]   APB_TXN          : 63.6%  (7/11 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(481) @ 13955000: uvm_test_top.env.cov [COV]   REGISTER_ACCESS  : 0.0%  (0/12 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(483) @ 13955000: uvm_test_top.env.cov [COV]   ERROR_SCENARIOS  : 45.5%  (5/11 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(485) @ 13955000: uvm_test_top.env.cov [COV]   AHB_PROTOCOL     : 100.0%  (13/13 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(487) @ 13955000: uvm_test_top.env.cov [COV]   APB_PROTOCOL     : 68.2%  (15/22 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(489) @ 13955000: uvm_test_top.env.cov [COV]   ----------------------------------------
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(490) @ 13955000: uvm_test_top.env.cov [COV]   OVERALL          : 71.1%  (91/128 bins)
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(492) @ 13955000: uvm_test_top.env.cov [COV] ================================================
+# UVM_INFO env/ahb2apb_bridge_coverage.sv(535) @ 13955000: uvm_test_top.env.cov [COV] UNCOVERED BINS (37):
+#     AHB_TXN.haddr_range.APB_MID
+#     AHB_TXN.haddr_range.REG_RANGE
+#     AHB_TXN.addr_x_write.APB_MID.WRITE
+#     AHB_TXN.addr_x_write.APB_MID.READ
+#     AHB_TXN.addr_x_write.REG_RANGE.WRITE
+#     AHB_TXN.addr_x_write.REG_RANGE.READ
+#     AHB_TXN.addr_x_write.OUT_OF_RANGE.WRITE
+#     AHB_TXN.write_x_resp.WRITE.ERROR
+#     APB_TXN.paddr_range.APB_MID
+#     APB_TXN.pslverr.ERROR
+#     APB_TXN.pwrite_x_pslverr.WRITE.ERROR
+#     APB_TXN.pwrite_x_pslverr.READ.ERROR
+#     REG.offset.CTRL
+#     REG.offset.STATUS
+#     REG.offset.ERROR_ADDR
+#     REG.offset.ERROR_INFO
+#     REG.rw.READ
+#     REG.rw.WRITE
+#     REG.offset_x_rw.CTRL.READ
+#     REG.offset_x_rw.CTRL.WRITE
+#     REG.offset_x_rw.STATUS.READ
+#     REG.offset_x_rw.STATUS.WRITE
+#     REG.offset_x_rw.ERROR_ADDR.READ
+#     REG.offset_x_rw.ERROR_INFO.READ
+#     ERR.direction.WRITE
+#     ERR.addr.MID_RANGE
+#     ERR.dir_x_addr.WRITE.JUST_ABOVE
+#     ERR.dir_x_addr.WRITE.MID_RANGE
+#     ERR.dir_x_addr.WRITE.FAR_ABOVE
+#     ERR.dir_x_addr.READ.MID_RANGE
+#     APB_PROT.pready.WAIT
+#     APB_PROT.pslverr.ERROR
+#     APB_PROT.phase_trans.ACCESS_TO_ACCESS
+#     APB_PROT.phase_x_ready.IDLE.WAIT
+#     APB_PROT.phase_x_ready.ACCESS.WAIT
+#     APB_PROT.pwrite_x_pslverr.WRITE.ERROR
+#     APB_PROT.pwrite_x_pslverr.READ.ERROR
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(258) @ 13955000: uvm_test_top.env.scb [SCB] ---------- Transaction Summary ----------
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(259) @ 13955000: uvm_test_top.env.scb [SCB]   AHB sent     : 220
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(260) @ 13955000: uvm_test_top.env.scb [SCB]   APB received : 220
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(261) @ 13955000: uvm_test_top.env.scb [SCB]   Matched      : 220
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(279) @ 13955000: uvm_test_top.env.scb [SCB] ----------------------------------------
+# UVM_INFO env/ahb2apb_bridge_scoreboard.sv(285) @ 13955000: uvm_test_top.env.scb [SCB] ========== ALL VERIFICATION GOALS PASSED ==========
+# UVM_INFO ../../ch04_tests/tests/ahb2apb_bridge_stress_001_test.sv(79) @ 13955000: uvm_test_top [STRESS_001] ========== TEST PASSED ==========
+# 
+# --- UVM Report Summary ---
+# 
+# ** Report counts by severity
+# UVM_INFO :  136
+# UVM_WARNING :    0
+# UVM_ERROR :    0
+# UVM_FATAL :    0
+# ** Report counts by id
+# [COV]    11
+# [RNTST]     1
+# [SCB]    15
+# [SCB_VG6]     1
+# [STRESS_001]     4
+# [TEST_DONE]     1
+# [ahb_mst_stress_001_seq]   103
+# ** Note: $finish    : C:/intelFPGA/22.1std/questa_fse/win64/../verilog_src/uvm-1.1d/src/base/uvm_root.svh(430)
+#    Time: 13955 ns  Iteration: 54  Instance: /tb_top
+# End time: 14:49:00 on Mar 09,2026, Elapsed time: 0:00:02
+# Errors: 0, Warnings: 0
