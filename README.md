@@ -5,8 +5,7 @@ This repository accompanies the book:
 by Vikash Kumar
 
 > 📖 **Get the book** — *AI-Assisted Hardware Verification* · Springer · ISBN 978-3-032-34545-5
-> <!-- TODO: replace REPLACE_WITH_BOOK_URL below with the final product/purchase link -->
-> 👉 **[Buy / preview the book](REPLACE_WITH_BOOK_URL)**
+> 👉 **[View on Springer Nature Link](https://link.springer.com/book/9783032345455)**
 
 All examples are built on the **Educational Bus Bridge Model** — a carefully
 curated AHB-to-APB bridge (specification, RTL, and IP-XACT) authored
@@ -904,6 +903,7 @@ professional work, please cite the book:
 ```
 Kumar, V. (2026). AI-Assisted Hardware Verification: Cognitive Verification
 Architecture with the VEGA Framework. Springer. ISBN 978-3-032-34545-5.
+Book: https://link.springer.com/book/9783032345455
 Companion repository: https://github.com/vksabnima/vega_framework
 ```
 
