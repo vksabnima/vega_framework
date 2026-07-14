@@ -17,6 +17,33 @@ same governed workflow applies to any design.
 
 ---
 
+## Time per Verification Stage — VEGA vs. Manual
+
+The table contrasts the **wall-clock time measured with VEGA** on this
+repository's worked example (the Educational Bus Bridge Model, an AHB-to-APB
+bridge) against **typical manual effort** reported in industry verification
+studies. VEGA figures are *measured this run*; manual figures are *cited
+industry ranges*, not measured for this design.
+
+| Verification stage | Manual (typical, industry) | VEGA (measured) |
+|---|:--:|:--:|
+| Design-intent → TestPlan / XTP *(Ch. 2)* | days | **≈ 5 min** |
+| UVM testbench bring-up *(Ch. 3)* | days – weeks | **≈ 4 min** |
+| Debug to first passing test *(Ch. 3 / 5)* | hours – days | **≈ 7 min** |
+| Test-scenario suite — 103 tests *(Ch. 4)* | weeks | **≈ 2.2 h** (78 s/test) |
+| **End-to-end: spec → verified suite** | **weeks** | **≈ 2.5 h** |
+
+<sub>**VEGA** = wall-clock measured on Questa Intel FPGA Starter Edition with
+Claude Opus 4.8, under human Verification-Strategist governance. The Ch. 4 rate
+is 77.7 s/test measured over 72 of 103 logged generations; all 103 tests were
+generated and compile clean. **Manual** = typical ranges from the Wilson
+Research Group functional-verification studies and Siemens Verification
+Horizons — verification consumes ~70% of IC/ASIC project effort, and debug
+alone ~44% of a verification engineer's time. Manual figures are industry
+estimates, not measured for this design.</sub>
+
+---
+
 ## Simulator Independence
 
 VEGA is a **methodology, not a tool tied to one simulator.** The framework —
