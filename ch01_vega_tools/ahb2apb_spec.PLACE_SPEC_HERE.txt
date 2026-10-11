@@ -1,0 +1,19 @@
+PLACE THE SPECIFICATION HERE
+============================
+
+The Educational Bridge Model specification is not included in this
+repository. It is published in Appendix A of the book:
+
+  AI-Assisted Hardware Verification:
+  Cognitive Verification Architecture with the VEGA Framework
+  (Vikash Kumar, Springer, 2026)
+
+Copy Appendix A into a PDF and save it in this folder as:
+
+  ch01_vega_tools/ahb2apb_spec.pdf
+
+That path is git-ignored, so your copy is never committed.
+
+The Chapter 2 and Chapter 3 commands read the spec from that path. The
+book's §2.8 command (python ch01_vega_tools/vega_xtp_gen.py spec.pdf)
+also finds it there, so the spec only needs to be saved once.
